@@ -268,7 +268,8 @@ struct CourseDetailsView: View {
                                         title: "1. Foundations of Behavior",
                                         subtitle: "12 mins",
                                         isCompleted: true,
-                                        isCurrent: false
+                                        isCurrent: false,
+                                        isLocked: false
                                     )
                                 }
 
@@ -282,7 +283,8 @@ struct CourseDetailsView: View {
                                         title: "2. Cognitive Processes",
                                         subtitle: "Current Module",
                                         isCompleted: false,
-                                        isCurrent: true
+                                        isCurrent: true,
+                                        isLocked: false
                                     )
                                 }
 
