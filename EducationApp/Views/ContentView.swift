@@ -1,10 +1,16 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var isLoggedIn: Bool = false
+
     var body: some View {
-        NavigationStack {
-            WelcomeScreen()
-                .navigationBarHidden(true)
+        if isLoggedIn {
+            MainAppView(isLoggedIn: $isLoggedIn)
+        } else {
+            NavigationStack {
+                WelcomeScreen(isLoggedIn: $isLoggedIn)
+                    .navigationBarHidden(true)
+            }
         }
     }
 }
