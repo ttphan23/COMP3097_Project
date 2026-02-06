@@ -109,11 +109,11 @@ struct LessonView: View {
                             VStack(spacing: 0) {
                                 HStack(spacing: 8) {
                                     ZStack(alignment: .leading) {
-                                        RoundedCapsule()
+                                        Capsule()
                                             .fill(Color(red: 0.99, green: 0.88, blue: 0.28))
                                             .frame(height: 8)
 
-                                        RoundedCapsule()
+                                        Capsule()
                                             .fill(Color.white.opacity(0.3))
                                             .frame(width: CGFloat(175 * (1 - completionPercentage)), height: 8)
                                     }
