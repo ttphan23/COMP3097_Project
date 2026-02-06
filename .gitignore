@@ -1,0 +1,29 @@
+# Claude Code
+.claude/
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcworkspace/xcuserdata/
+*.swiftpm/xcode/
+.swiftpm/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Derived data
+DerivedData/
+
+# System files
+Thumbs.db
