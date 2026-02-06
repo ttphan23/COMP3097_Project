@@ -150,7 +150,7 @@ struct CourseCatalogView: View {
                                 courseId: "course_algorithm_design",
                                 title: "Algorithm Design",
                                 category: "Engineering",
-                                categoryColor: Color.emerald,
+                                categoryColor: Color(red: 0.196, green: 0.784, blue: 0.471),
                                 duration: "10 Weeks",
                                 difficulty: "Medium",
                                 difficultyColor: Color.amber,
@@ -211,7 +211,7 @@ struct CategoryButton: View {
         case "Arts":
             return Color.purple
         case "Engineering":
-            return Color.emerald
+            return Color(red: 0.196, green: 0.784, blue: 0.471)
         case "Business":
             return Color.amber
         default:
