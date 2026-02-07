@@ -202,10 +202,10 @@ struct CreateAccountView: View {
                 Spacer()
 
                 // Hidden navigation trigger
-                NavigationLink("", isActive: $goToVerify) {
-                    VerifyEmailView(isLoggedIn: $isLoggedIn, email: email)
-                        .navigationBarHidden(true)
-                }
+                    .navigationDestination(isPresented: $goToVerify) {
+                        VerifyEmailView(isLoggedIn: $isLoggedIn, email: email)
+                            .navigationBarBackButtonHidden(true)
+                    }
                 .hidden()
             }
         }

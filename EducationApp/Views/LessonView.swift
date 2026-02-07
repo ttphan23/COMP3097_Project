@@ -327,8 +327,8 @@ struct NotebookView: View {
                                 )
                         }
                     }
-                    .padding(.left, 12)
-                    .padding(.right, 20)
+                    .padding(.leading, 12)
+                    .padding(.trailing, 20)
                     .padding(.top, 12)
 
                     VStack(spacing: 0) {
@@ -355,7 +355,7 @@ struct NotebookView: View {
                     .font(.system(size: 16))
                     .fontDesign(.monospaced)
                     .foregroundStyle(.black.opacity(0.8))
-                    .padding(.left, 60)
+                    .padding(.leading, 60)
                     .padding(.top, 12)
             }
             .background(Color.white)
@@ -366,7 +366,7 @@ struct NotebookView: View {
                     .background(Color.red.opacity(0.3))
             }
             .frame(width: 2)
-            .padding(.right, 12)
+            .padding(.trailing, 12)
 
             VStack(spacing: 8) {
                 Button(action: {}) {
@@ -446,6 +446,7 @@ struct MarkCompleteButton: View {
         .opacity(lessonCompleted ? 0.7 : 1.0)
         .padding(.horizontal, 24)
         .padding(.vertical, 24)
+        .padding(.bottom, 75)
     }
 }
 

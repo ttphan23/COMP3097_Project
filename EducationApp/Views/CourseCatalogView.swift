@@ -153,7 +153,7 @@ struct CourseCatalogView: View {
                                 categoryColor: Color(red: 0.196, green: 0.784, blue: 0.471),
                                 duration: "10 Weeks",
                                 difficulty: "Medium",
-                                difficultyColor: Color.amber,
+                                difficultyColor: Color.orange,
                                 studentCount: "8k",
                                 isEnrolled: enrolledCourses.contains("course_algorithm_design"),
                                 onEnroll: { courseId in
@@ -213,7 +213,7 @@ struct CategoryButton: View {
         case "Engineering":
             return Color(red: 0.196, green: 0.784, blue: 0.471)
         case "Business":
-            return Color.amber
+            return Color.orange
         default:
             return Color.blue
         }

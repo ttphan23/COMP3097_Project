@@ -303,7 +303,7 @@ struct CourseDetailsView: View {
                             }
                         }
                         .padding(.horizontal, 20)
-                        .padding(.bottom, 140)
+                        .padding(.bottom, 185)
                     }
                 }
             }
@@ -344,6 +344,7 @@ struct CourseDetailsView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 20)
+                .padding(.bottom, 60)
                 .background(
                     LinearGradient(
                         gradient: Gradient(colors: [
