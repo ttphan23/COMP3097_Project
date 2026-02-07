@@ -2,6 +2,7 @@ import SwiftUI
 
 struct VerifyEmailView: View {
     @Environment(\.dismiss) private var dismiss
+    @Binding var isLoggedIn: Bool
     let email: String
 
     @State private var goToWelcome = false
@@ -97,27 +98,21 @@ struct VerifyEmailView: View {
                     .padding(.horizontal, 24)
 
                     Button {
-                        goToWelcome = true
+                        isLoggedIn = true
                     } label: {
-                        Text("Back to Main Page")
+                        Text("Continue to Dashboard")
                             .font(.footnote.weight(.bold))
                             .foregroundStyle(.white)
                             .padding(.vertical, 10)
                             .frame(maxWidth: .infinity)
                             .background(
                                 RoundedRectangle(cornerRadius: 14)
-                                    .fill(Color.white.opacity(0.12))
+                                    .fill(Color.blue.opacity(0.7))
                             )
                     }
                     .padding(.horizontal, 24)
                 }
                 .padding(.top, 8)
-
-                NavigationLink("", isActive: $goToWelcome) {
-                    WelcomeScreen()
-                        .navigationBarHidden(true)
-                }
-                .hidden()
 
                 Spacer()
 
@@ -132,6 +127,6 @@ struct VerifyEmailView: View {
 
 #Preview {
     NavigationStack {
-        VerifyEmailView(email: "alex.smith@university.edu")
+        VerifyEmailView(isLoggedIn: .constant(false), email: "alex.smith@university.edu")
     }
 }

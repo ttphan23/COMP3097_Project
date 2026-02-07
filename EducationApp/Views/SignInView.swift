@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SignInView: View {
     @Environment(\.dismiss) private var dismiss
+    @Binding var isLoggedIn: Bool
 
     @State private var email: String = ""
     @State private var password: String = ""
@@ -95,8 +96,11 @@ struct SignInView: View {
                     }
 
                     Button {
-                        // UI-only validation
-                        showError = !isValidEmail
+                        if isValidEmail {
+                            isLoggedIn = true
+                        } else {
+                            showError = true
+                        }
                     } label: {
                         Text("Sign In")
                             .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -112,7 +116,7 @@ struct SignInView: View {
                 Spacer()
             }
         }
-        .onChange(of: email) { _ in
+        .onChange(of: email) {
             if showError { showError = false }
         }
     }
@@ -120,6 +124,6 @@ struct SignInView: View {
 
 #Preview {
     NavigationStack {
-        SignInView()
+        SignInView(isLoggedIn: .constant(false))
     }
 }

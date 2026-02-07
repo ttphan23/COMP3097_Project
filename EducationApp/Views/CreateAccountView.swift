@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CreateAccountView: View {
     @Environment(\.dismiss) private var dismiss
+    @Binding var isLoggedIn: Bool
 
     @State private var email: String = ""
     @State private var password: String = ""
@@ -185,7 +186,7 @@ struct CreateAccountView: View {
                         Text("Already part of the community?")
                             .foregroundStyle(.black.opacity(0.55))
                         NavigationLink {
-                            SignInView()
+                            SignInView(isLoggedIn: $isLoggedIn)
                                 .navigationBarHidden(true)
                         } label: {
                             Text("Log In")
@@ -202,19 +203,19 @@ struct CreateAccountView: View {
 
                 // Hidden navigation trigger
                 NavigationLink("", isActive: $goToVerify) {
-                    VerifyEmailView(email: email)
+                    VerifyEmailView(isLoggedIn: $isLoggedIn, email: email)
                         .navigationBarHidden(true)
                 }
                 .hidden()
             }
         }
-        .onChange(of: email) { _ in
+        .onChange(of: email) {
             if showEmailError { showEmailError = false }
         }
-        .onChange(of: password) { _ in
+        .onChange(of: password) {
             if showPasswordError { showPasswordError = false }
         }
-        .onChange(of: confirmPassword) { _ in
+        .onChange(of: confirmPassword) {
             if showPasswordError { showPasswordError = false }
         }
     }
@@ -247,6 +248,6 @@ struct DottedBackground: View {
 
 #Preview {
     NavigationStack {
-        CreateAccountView()
+        CreateAccountView(isLoggedIn: .constant(false))
     }
 }

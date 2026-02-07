@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct WelcomeScreen: View {
+    @Binding var isLoggedIn: Bool
+
     var body: some View {
         ZStack {
             LinearGradient(
@@ -79,7 +81,7 @@ struct WelcomeScreen: View {
 
                     VStack(spacing: 12) {
                         NavigationLink {
-                            CreateAccountView()
+                            CreateAccountView(isLoggedIn: $isLoggedIn)
                                 .navigationBarHidden(true)
                         } label: {
                             Text("Create Student Account")
@@ -92,7 +94,7 @@ struct WelcomeScreen: View {
                         }
 
                         NavigationLink {
-                            SignInView()
+                            SignInView(isLoggedIn: $isLoggedIn)
                                 .navigationBarHidden(true)
                         } label: {
                             Text("Sign In")
@@ -141,5 +143,5 @@ struct PatternOverlay: View {
 }
 
 #Preview {
-    WelcomeScreen()
+    WelcomeScreen(isLoggedIn: .constant(false))
 }
