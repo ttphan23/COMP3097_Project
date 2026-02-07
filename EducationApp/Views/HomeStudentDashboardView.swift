@@ -307,6 +307,7 @@ struct HomeStudentDashboardView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, 18)
                         .padding(.vertical, 12)
+                        .padding(.bottom, 45)
 
                         Spacer(minLength: 20)
                     }

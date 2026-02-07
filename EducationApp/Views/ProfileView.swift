@@ -215,6 +215,7 @@ struct ProfileView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 20)
+                .padding(.bottom, 40)
             }
 
             // Header
