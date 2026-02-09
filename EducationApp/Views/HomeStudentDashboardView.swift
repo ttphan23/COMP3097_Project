@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeStudentDashboardView: View {
+    @State private var showNotifications = false
     @StateObject private var persistenceManager = DataPersistenceManager.shared
     @State private var stats = (totalCoursesEnrolled: 0, totalCoursesCompleted: 0, totalLessonsCompleted: 0, averageProgress: 0.0)
 
@@ -34,7 +35,7 @@ struct HomeStudentDashboardView: View {
 
                     Spacer()
 
-                    Button(action: {}) {
+                    Button(action: { showNotifications = true}) {
                         Image(systemName: "bell.badge.fill")
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundStyle(Color(red: 1, green: 0.49, blue: 0.37))
@@ -336,6 +337,9 @@ struct HomeStudentDashboardView: View {
         }
         .onAppear {
             stats = persistenceManager.getAppStatistics()
+        }
+        .sheet(isPresented: $showNotifications){
+            NotificationsView()
         }
     }
 }

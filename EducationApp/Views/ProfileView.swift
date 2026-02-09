@@ -89,6 +89,19 @@ struct ProfileView: View {
                                 value: "12d"
                             )
                         }
+                        NavigationLink(destination: SavedCoursesView()) {
+                            HStack {
+                                Text("View Detailed Analytics")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 12))
+                            }
+                            .foregroundStyle(Color.blue)
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue.opacity(0.05))
+                            .cornerRadius(10)
+                        }
                     }
                     .padding(16)
                     .background(Color.white)

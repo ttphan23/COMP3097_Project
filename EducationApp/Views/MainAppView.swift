@@ -17,20 +17,22 @@ struct MainAppView: View {
             NavigationStack { CourseCatalogView() }
                 .tag(1)
 
-            NavigationStack { SavedCoursesView() }
+            NavigationStack { AssignmentsView() }
                 .tag(2)
+            
+            NavigationStack { SavedCoursesView() }
+                .tag(3)
 
             NavigationStack { ProfileView(isLoggedIn: $isLoggedIn) }
-                .tag(3)
+                .tag(4)
         }
-        .toolbar(.hidden, for: .tabBar)
-        .toolbarBackground(.hidden, for: .tabBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             BottomPillBar(selectedTab: $selectedTab)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(Color.white.opacity(0.001))
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }
 
@@ -40,15 +42,20 @@ struct BottomPillBar: View {
     var body: some View {
         HStack(spacing: 0) {
             pillItem(icon: "house.fill", title: "Home", tab: 0)
-            pillItem(icon: "sparkles", title: "Catalog", tab: 1)
-            pillItem(icon: "bookmark.fill", title: "Saved", tab: 2)
-            pillItem(icon: "person.crop.circle", title: "Profile", tab: 3)
+            
+            pillItem(icon: "square.grid.2x2.fill", title: "Courses", tab: 1)
+            
+            pillItem(icon: "calendar", title: "Plan", tab: 2)
+            
+            pillItem(icon: "bookmark.fill", title: "Saved", tab: 3)
+            
+            pillItem(icon: "person.crop.circle", title: "Me", tab: 4)
         }
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: 22)
                 .fill(Color.white.opacity(0.95))
-                .shadow(radius: 10)
+                .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
         )
     }
 
@@ -57,20 +64,27 @@ struct BottomPillBar: View {
         let isActive = selectedTab == tab
 
         Button {
-            selectedTab = tab
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedTab = tab
+            }
         } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 18, weight: .semibold))
-                Text(title)
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 20, weight: .semibold))
+                
+                if isActive {
+                    Text(title)
+                        .font(.system(size: 10, weight: .bold))
+                        .transition(.scale.combined(with: .opacity))
+                        .lineLimit(1)
+                }
             }
             .foregroundStyle(isActive ? Color.blue : Color.gray.opacity(0.6))
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
+            .frame(height: 50)
             .background(
                 isActive
-                ? RoundedRectangle(cornerRadius: 18).fill(Color.gray.opacity(0.12))
+                ? RoundedRectangle(cornerRadius: 18).fill(Color.blue.opacity(0.1))
                 : RoundedRectangle(cornerRadius: 18).fill(Color.clear)
             )
         }

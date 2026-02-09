@@ -1,73 +1,72 @@
 import SwiftUI
 
 struct SavedCoursesView: View {
+    @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @State private var enrolledCourses: [CourseProgress] = []
     var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Saved Courses")
+            ZStack {
+                Color(red: 0.97, green: 0.98, blue: 0.99).ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    // 헤더
+                    HStack {
+                        Text("Learning Analytics")
                             .font(.system(size: 28, weight: .bold))
-                            .foregroundStyle(.black.opacity(0.9))
-
-                        Text("Your bookmarked learning materials")
-                            .font(.system(size: 13))
-                            .foregroundStyle(.gray.opacity(0.6))
+                        Spacer()
+                        Image(systemName: "chart.bar.xaxis")
+                            .font(.title2)
+                            .foregroundStyle(.blue)
                     }
-
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 12) {
-                        // Empty State
-                        VStack(spacing: 16) {
-                            Image(systemName: "bookmark.slash.fill")
-                                .font(.system(size: 48))
-                                .foregroundStyle(Color.gray.opacity(0.3))
-
-                            VStack(spacing: 6) {
-                                Text("No Saved Courses Yet")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundStyle(.black.opacity(0.85))
-
-                                Text("Bookmark courses to save them for later")
-                                    .font(.system(size: 13))
-                                    .foregroundStyle(.gray.opacity(0.6))
-                                    .multilineTextAlignment(.center)
+                    .padding(20)
+                    
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            HStack(spacing: 20) {
+                                AnalyticsItem(value: "\(enrolledCourses.count)", label: "Courses", icon: "book.fill", color: .blue)
+                                AnalyticsItem(value: "\(persistenceManager.getCompletedLessonsCount())", label: "Lessons", icon: "play.circle.fill", color: .green)
+                                AnalyticsItem(value: "3d", label: "Streak", icon: "flame.fill", color: .orange)
                             }
-
-                            NavigationLink(destination: CourseCatalogView().navigationBarHidden(true)) {
-                                HStack {
-                                    Image(systemName: "sparkles")
-                                        .font(.system(size: 14, weight: .semibold))
-
-                                    Text("Browse Catalog")
-                                        .font(.system(size: 14, weight: .bold))
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(20)
+                            .shadow(color: Color.black.opacity(0.05), radius: 5)
+                            .padding(.horizontal)
+                            
+                            // 상세 리스트
+                            VStack(alignment: .leading, spacing: 15) {
+                                Text("Course Progress").font(.headline).padding(.horizontal)
+                                
+                                ForEach(enrolledCourses) { course in
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            Text(course.courseName).font(.subheadline.weight(.semibold))
+                                            ProgressView(value: course.completionPercentage, total: 100).tint(.blue)
+                                        }
+                                        Text("\(Int(course.completionPercentage))%").font(.caption.weight(.bold)).foregroundStyle(.gray)
+                                    }
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(16)
+                                    .padding(.horizontal)
                                 }
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Color(red: 0.231, green: 0.51, blue: 0.96))
-                                .cornerRadius(12)
                             }
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(20)
-                        .background(Color.gray.opacity(0.05))
-                        .cornerRadius(16)
-
-                        Spacer(minLength: 100)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
                 }
             }
+            .onAppear { enrolledCourses = persistenceManager.getAllCourseProgress() }
         }
+}
+
+struct AnalyticsItem: View {
+    let value: String, label: String, icon: String, color: Color
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon).font(.title2).foregroundStyle(color)
+            Text(value).font(.title3.weight(.bold))
+            Text(label).font(.caption).foregroundStyle(.gray)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 

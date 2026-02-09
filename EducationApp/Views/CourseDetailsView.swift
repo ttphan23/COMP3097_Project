@@ -289,17 +289,19 @@ struct CourseDetailsView: View {
                                 }
 
                                 // Locked Module
-                                CourseModuleCard(
-                                    icon: "lock.fill",
-                                    iconColor: Color.gray.opacity(0.3),
-                                    backgroundColor: Color.gray.opacity(0.03),
-                                    borderColor: Color.gray.opacity(0.1),
-                                    title: "3. Social Psychology",
-                                    subtitle: "Quiz • 15 mins",
-                                    isCompleted: false,
-                                    isCurrent: false,
-                                    isLocked: true
-                                )
+                                NavigationLink(destination: QuizView().navigationBarHidden(true)){
+                                    CourseModuleCard(
+                                        icon: "questionmark.circle.fill",
+                                        iconColor: .orange,
+                                        backgroundColor: .orange.opacity(0.05),
+                                        borderColor: .orange.opacity(0.2),
+                                        title: "3. Social Psychology",
+                                        subtitle: "Quiz • 15 mins",
+                                        isCompleted: false,
+                                        isCurrent: false,
+                                        isLocked: true
+                                    )
+                                }
                             }
                         }
                         .padding(.horizontal, 20)
