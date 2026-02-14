@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Binding var isLoggedIn: Bool
+    @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var userStore: UserStore
+
     @StateObject private var persistenceManager = DataPersistenceManager.shared
 
     @State private var showLogoutAlert: Bool = false
@@ -258,24 +259,23 @@ struct ProfileView: View {
                 Spacer()
             }
         }
-        .alert("Sign Out", isPresented: $showLogoutAlert) {
-            Button("Cancel", role: .cancel) {
-                showLogoutAlert = false
+                .alert("Sign Out", isPresented: $showLogoutAlert) {
+                    Button("Cancel", role: .cancel) { showLogoutAlert = false }
+                    Button("Sign Out", role: .destructive) {
+                        appState.isLoggedIn = false
+                        userStore.clear() // optional, but usually expected on logout
+                    }
+                } message: {
+                    Text("Are you sure you want to sign out? You'll need to sign in again to access your courses.")
+                }
+                .onAppear {
+                    let prefs = persistenceManager.loadPreferences()
+                    notificationsEnabled = prefs.notificationsEnabled
+                    darkModeEnabled = prefs.darkModeEnabled
+                    language = prefs.language
+                }
             }
-            Button("Sign Out", role: .destructive) {
-                isLoggedIn = false
-            }
-        } message: {
-            Text("Are you sure you want to sign out? You'll need to sign in again to access your courses.")
         }
-        .onAppear {
-            let prefs = persistenceManager.loadPreferences()
-            notificationsEnabled = prefs.notificationsEnabled
-            darkModeEnabled = prefs.darkModeEnabled
-            language = prefs.language
-        }
-    }
-}
 
 struct StatCard: View {
     let icon: String
@@ -337,5 +337,7 @@ struct SettingItem: View {
 }
 
 #Preview {
-    ProfileView(isLoggedIn: .constant(true))
+    ProfileView()
+        .environmentObject(AppState())
+        .environmentObject(UserStore())
 }

@@ -1,17 +1,17 @@
 import SwiftUI
 
 struct SignInView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Binding var isLoggedIn: Bool
+    @EnvironmentObject private var userStore: UserStore
+    @EnvironmentObject private var appState: AppState
 
     @State private var email: String = ""
     @State private var password: String = ""
 
     @State private var showError: Bool = false
+    @State private var errorMessage: String = ""
 
     private var isValidEmail: Bool {
-        let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.contains("@")
+        email.trimmingCharacters(in: .whitespacesAndNewlines).contains("@")
     }
 
     var body: some View {
@@ -21,7 +21,11 @@ struct SignInView: View {
 
             VStack(spacing: 16) {
                 HStack {
-                    Button(action: { dismiss() }) {
+                    Button {
+                        if !appState.path.isEmpty {
+                            appState.path.removeLast()
+                        }
+                    } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundStyle(.black.opacity(0.85))
@@ -47,7 +51,6 @@ struct SignInView: View {
                 .padding(.top, 4)
 
                 VStack(spacing: 14) {
-                    // Email
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Email")
                             .font(.footnote.weight(.semibold))
@@ -64,12 +67,12 @@ struct SignInView: View {
                                     .fill(Color.white)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
-                                            .stroke(showError ? Color.red : Color.black.opacity(0.08), lineWidth: showError ? 2 : 1)
+                                            .stroke(showError ? Color.red : Color.black.opacity(0.08),
+                                                    lineWidth: showError ? 2 : 1)
                                     )
                             )
                     }
 
-                    // Password
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Password")
                             .font(.footnote.weight(.semibold))
@@ -83,24 +86,21 @@ struct SignInView: View {
                                     .fill(Color.white)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
-                                            .stroke(showError ? Color.red : Color.black.opacity(0.08), lineWidth: showError ? 2 : 1)
+                                            .stroke(showError ? Color.red : Color.black.opacity(0.08),
+                                                    lineWidth: showError ? 2 : 1)
                                     )
                             )
                     }
 
                     if showError {
-                        Text("Please enter a valid email address (must include @). (No real login yet)")
+                        Text(errorMessage)
                             .font(.caption)
                             .foregroundStyle(.red)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
 
                     Button {
-                        if isValidEmail {
-                            isLoggedIn = true
-                        } else {
-                            showError = true
-                        }
+                        signIn()
                     } label: {
                         Text("Sign In")
                             .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -116,14 +116,34 @@ struct SignInView: View {
                 Spacer()
             }
         }
-        .onChange(of: email) {
-            if showError { showError = false }
-        }
+        .onChange(of: email) { if showError { showError = false } }
+        .onChange(of: password) { if showError { showError = false } }
     }
-}
 
-#Preview {
-    NavigationStack {
-        SignInView(isLoggedIn: .constant(false))
+    private func signIn() {
+        showError = false
+        errorMessage = ""
+
+        if !isValidEmail {
+            showError = true
+            errorMessage = "Please enter a valid email address (must include @)."
+            return
+        }
+
+        guard userStore.user != nil else {
+            showError = true
+            errorMessage = "No account found on this device. Please create an account first."
+            return
+        }
+
+        if !userStore.signIn(email: email, password: password) {
+            showError = true
+            errorMessage = "Incorrect email or password."
+            return
+        }
+
+        appState.isLoggedIn = true
+
+        appState.path = NavigationPath()
     }
 }
