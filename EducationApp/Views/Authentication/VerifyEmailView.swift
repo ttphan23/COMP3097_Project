@@ -2,10 +2,10 @@ import SwiftUI
 
 struct VerifyEmailView: View {
     @Environment(\.dismiss) private var dismiss
-    @Binding var isLoggedIn: Bool
-    let email: String
+    @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var userStore: UserStore
 
-    @State private var goToWelcome = false
+    let email: String
 
     var body: some View {
         ZStack {
@@ -20,31 +20,20 @@ struct VerifyEmailView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 18) {
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundStyle(.white.opacity(0.85))
-                            .padding(10)
-                            .background(Circle().fill(Color.white.opacity(0.08)))
-                    }
-                    Spacer()
 
-                    HStack(spacing: 8) {
-                        Capsule().fill(Color.white.opacity(0.18)).frame(width: 22, height: 4)
-                        Capsule().fill(Color.blue).frame(width: 28, height: 4)
-                        Capsule().fill(Color.white.opacity(0.18)).frame(width: 22, height: 4)
-                    }
-
-                    Spacer()
-                    Color.clear.frame(width: 38, height: 38)
+                // Progress indicator
+                HStack(spacing: 8) {
+                    Capsule().fill(Color.white.opacity(0.18)).frame(width: 22, height: 4)
+                    Capsule().fill(Color.blue).frame(width: 28, height: 4)
+                    Capsule().fill(Color.white.opacity(0.18)).frame(width: 22, height: 4)
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, 6)
+                .padding(.top, 20)
 
                 ZStack {
                     Circle()
                         .fill(Color.blue.opacity(0.12))
                         .frame(width: 140, height: 140)
+
                     Circle()
                         .stroke(style: StrokeStyle(lineWidth: 2, dash: [6, 6]))
                         .foregroundStyle(Color.blue.opacity(0.25))
@@ -69,6 +58,7 @@ struct VerifyEmailView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "envelope.fill")
                         .foregroundStyle(Color.blue.opacity(0.9))
+
                     Text(email.isEmpty ? "yourname@example.com" : email)
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(.white.opacity(0.85))
@@ -76,7 +66,10 @@ struct VerifyEmailView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
-                .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.08)))
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.white.opacity(0.08))
+                )
                 .padding(.top, 2)
 
                 VStack(spacing: 10) {
@@ -98,16 +91,18 @@ struct VerifyEmailView: View {
                     .padding(.horizontal, 24)
 
                     Button {
-                        isLoggedIn = true
+                        userStore.clear()             
+                        appState.isLoggedIn = false
+                        appState.path = NavigationPath()
                     } label: {
-                        Text("Continue to Dashboard")
+                        Text("Back to Main Page")
                             .font(.footnote.weight(.bold))
                             .foregroundStyle(.white)
                             .padding(.vertical, 10)
                             .frame(maxWidth: .infinity)
                             .background(
                                 RoundedRectangle(cornerRadius: 14)
-                                    .fill(Color.blue.opacity(0.7))
+                                    .fill(Color.white.opacity(0.12))
                             )
                     }
                     .padding(.horizontal, 24)
@@ -127,6 +122,8 @@ struct VerifyEmailView: View {
 
 #Preview {
     NavigationStack {
-        VerifyEmailView(isLoggedIn: .constant(false), email: "alex.smith@university.edu")
+        VerifyEmailView(email: "alex.smith@university.edu")
+            .environmentObject(UserStore())
+            .environmentObject(AppState())
     }
 }

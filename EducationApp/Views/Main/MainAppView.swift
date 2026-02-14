@@ -2,10 +2,9 @@ import SwiftUI
 
 struct MainAppView: View {
     @State private var selectedTab: Int = 0
-    @Binding var isLoggedIn: Bool
+    @EnvironmentObject private var appState: AppState
 
-    init(isLoggedIn: Binding<Bool>) {
-        self._isLoggedIn = isLoggedIn
+    init() {
         UITabBar.appearance().isHidden = true
     }
 
@@ -19,11 +18,11 @@ struct MainAppView: View {
 
             NavigationStack { AssignmentsView() }
                 .tag(2)
-            
+
             NavigationStack { SavedCoursesView() }
                 .tag(3)
 
-            NavigationStack { ProfileView(isLoggedIn: $isLoggedIn) }
+            NavigationStack { ProfileView() }
                 .tag(4)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
