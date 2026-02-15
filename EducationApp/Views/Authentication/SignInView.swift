@@ -130,12 +130,6 @@ struct SignInView: View {
             return
         }
 
-        guard userStore.user != nil else {
-            showError = true
-            errorMessage = "No account found on this device. Please create an account first."
-            return
-        }
-
         if !userStore.signIn(email: email, password: password) {
             showError = true
             errorMessage = "Incorrect email or password."

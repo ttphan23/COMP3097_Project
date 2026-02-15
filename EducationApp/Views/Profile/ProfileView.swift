@@ -11,12 +11,23 @@ struct ProfileView: View {
     @State private var darkModeEnabled: Bool = false
     @State private var language: String = "English"
 
+    private var displayName: String {
+        let name = "\(userStore.currentUser?.firstName ?? "") \(userStore.currentUser?.lastName ?? "")"
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? "Student" : name
+    }
+
+    private var displayEmail: String {
+        userStore.currentUser?.email ?? "No email"
+    }
+
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 20) {
+
                     // Profile Header
                     VStack(spacing: 16) {
                         Image(systemName: "person.crop.circle.fill")
@@ -33,21 +44,22 @@ struct ProfileView: View {
                             )
 
                         VStack(spacing: 4) {
-                            Text("Alex Smith")
+                            Text(displayName)
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundStyle(.black.opacity(0.9))
 
-                            Text("alex.smith@stanford.edu")
+                            Text(displayEmail)
                                 .font(.system(size: 13))
                                 .foregroundStyle(.gray.opacity(0.6))
                         }
 
+                        // Keep as placeholder UI for now
                         HStack(spacing: 8) {
                             Image(systemName: "checkmark.seal.fill")
                                 .font(.system(size: 12))
                                 .foregroundStyle(Color.green)
 
-                            Text("Stanford University Verified")
+                            Text("University Verified")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(Color.green)
                         }
@@ -90,6 +102,7 @@ struct ProfileView: View {
                                 value: "12d"
                             )
                         }
+
                         NavigationLink(destination: SavedCoursesView()) {
                             HStack {
                                 Text("View Detailed Analytics")
@@ -139,8 +152,7 @@ struct ProfileView: View {
                                 }
                         }
 
-                        Divider()
-                            .padding(.vertical, 8)
+                        Divider().padding(.vertical, 8)
 
                         // Dark Mode Toggle
                         HStack(spacing: 12) {
@@ -161,8 +173,7 @@ struct ProfileView: View {
                                 }
                         }
 
-                        Divider()
-                            .padding(.vertical, 8)
+                        Divider().padding(.vertical, 8)
 
                         // Language Picker
                         HStack(spacing: 12) {
@@ -188,8 +199,7 @@ struct ProfileView: View {
                             }
                         }
 
-                        Divider()
-                            .padding(.vertical, 8)
+                        Divider().padding(.vertical, 8)
 
                         SettingItem(
                             icon: "lock.fill",
@@ -205,25 +215,22 @@ struct ProfileView: View {
                             .stroke(Color.gray.opacity(0.1), lineWidth: 1)
                     )
 
-                    // Logout Button
-                    Button(action: { showLogoutAlert = true }) {
-                        HStack {
-                            Image(systemName: "arrowtriangleright.fill")
-                                .font(.system(size: 12, weight: .semibold))
-
-                            Text("Sign Out")
-                                .font(.system(size: 15, weight: .bold))
-                        }
-                        .foregroundStyle(.red)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color.red.opacity(0.05))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.red.opacity(0.2), lineWidth: 1)
-                        )
+                    // Logout Button (Option B: Confirmation Alert)
+                    Button {
+                        showLogoutAlert = true
+                    } label: {
+                        Text("Sign Out")
+                            .font(.system(size: 15, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
                     }
+                    .foregroundStyle(.red)
+                    .background(Color.red.opacity(0.05))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.red.opacity(0.2), lineWidth: 1)
+                    )
 
                     Spacer(minLength: 20)
                 }
@@ -252,30 +259,29 @@ struct ProfileView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(Color.white)
-                .overlay(alignment: .bottom) {
-                    Divider()
-                }
+                .overlay(alignment: .bottom) { Divider() }
 
                 Spacer()
             }
         }
-                .alert("Sign Out", isPresented: $showLogoutAlert) {
-                    Button("Cancel", role: .cancel) { showLogoutAlert = false }
-                    Button("Sign Out", role: .destructive) {
-                        appState.isLoggedIn = false
-                        userStore.clear() // optional, but usually expected on logout
-                    }
-                } message: {
-                    Text("Are you sure you want to sign out? You'll need to sign in again to access your courses.")
-                }
-                .onAppear {
-                    let prefs = persistenceManager.loadPreferences()
-                    notificationsEnabled = prefs.notificationsEnabled
-                    darkModeEnabled = prefs.darkModeEnabled
-                    language = prefs.language
-                }
+        .alert("Sign Out", isPresented: $showLogoutAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Sign Out", role: .destructive) {
+                userStore.signOut()
+                appState.isLoggedIn = false
+                appState.path = NavigationPath()
             }
+        } message: {
+            Text("Are you sure you want to sign out? You'll need to sign in again to access your courses.")
         }
+        .onAppear {
+            let prefs = persistenceManager.loadPreferences()
+            notificationsEnabled = prefs.notificationsEnabled
+            darkModeEnabled = prefs.darkModeEnabled
+            language = prefs.language
+        }
+    }
+}
 
 struct StatCard: View {
     let icon: String
