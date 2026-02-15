@@ -91,7 +91,7 @@ struct VerifyEmailView: View {
                     .padding(.horizontal, 24)
 
                     Button {
-                        userStore.clear()             
+                        userStore.signOut()
                         appState.isLoggedIn = false
                         appState.path = NavigationPath()
                     } label: {
