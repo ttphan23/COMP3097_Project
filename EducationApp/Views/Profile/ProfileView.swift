@@ -21,6 +21,13 @@ struct ProfileView: View {
         userStore.currentUser?.email ?? "No email"
     }
     
+    private var displayDob: String {
+        guard let dob = userStore.currentUser?.dob else { return "Not set" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: dob)
+    }
+    
     private let headerHeight: CGFloat = 64
 
     var body: some View {
@@ -45,12 +52,16 @@ struct ProfileView: View {
                                     )
                             )
 
-                        VStack(spacing: 4) {
+                        VStack(spacing: 6) {
                             Text(displayName)
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundStyle(.black.opacity(0.9))
 
                             Text(displayEmail)
+                                .font(.system(size: 13))
+                                .foregroundStyle(.gray.opacity(0.6))
+
+                            Text("Date of Birth: \(displayDob)")
                                 .font(.system(size: 13))
                                 .foregroundStyle(.gray.opacity(0.6))
                         }
