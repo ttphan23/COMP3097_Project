@@ -20,6 +20,8 @@ struct ProfileView: View {
     private var displayEmail: String {
         userStore.currentUser?.email ?? "No email"
     }
+    
+    private let headerHeight: CGFloat = 64
 
     var body: some View {
         ZStack {
@@ -53,7 +55,7 @@ struct ProfileView: View {
                                 .foregroundStyle(.gray.opacity(0.6))
                         }
 
-                        // Keep as placeholder UI for now
+                        // Placeholder UI for now
                         HStack(spacing: 8) {
                             Image(systemName: "checkmark.seal.fill")
                                 .font(.system(size: 12))
@@ -237,6 +239,7 @@ struct ProfileView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 20)
                 .padding(.bottom, 40)
+                .padding(.top, headerHeight)
             }
 
             // Header
