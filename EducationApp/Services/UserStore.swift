@@ -57,6 +57,38 @@ final class UserStore: ObservableObject {
         UserDefaults.standard.removeObject(forKey: currentKey)
     }
 
+    // MARK: - Update Profile
+    func updateProfile(firstName: String, lastName: String, email: String, newPassword: String?) throws {
+        guard var current = currentUser else { return }
+
+        let oldEmailNormalized = normalizeEmail(current.email)
+        let newEmailNormalized = normalizeEmail(email)
+
+        // If email changed, ensure uniqueness against other users
+        if oldEmailNormalized != newEmailNormalized {
+            if users.contains(where: { normalizeEmail($0.email) == newEmailNormalized }) {
+                throw SignUpError.emailAlreadyInUse
+            }
+        }
+
+        current.firstName = firstName
+        current.lastName = lastName
+        current.email = email
+
+        if let pw = newPassword, !pw.isEmpty {
+            current.password = pw
+        }
+
+        // Update in users array using old email
+        if let idx = users.firstIndex(where: { normalizeEmail($0.email) == oldEmailNormalized }) {
+            users[idx] = current
+        }
+
+        currentUser = current
+        saveUsers()
+        saveCurrentUser()
+    }
+    
     // MARK: - Helpers
 
     private func normalizeEmail(_ email: String) -> String {

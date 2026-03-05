@@ -262,7 +262,7 @@ struct ProfileView: View {
 
                     Spacer()
 
-                    Button(action: {}) {
+                    NavigationLink(destination: EditProfileView()) {
                         Image(systemName: "pencil")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
