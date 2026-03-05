@@ -12,6 +12,9 @@ struct CreateAccountView: View {
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
+    
+    @State private var showPassword: Bool = false
+    @State private var showConfirmPassword: Bool = false
 
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
@@ -164,11 +167,41 @@ struct CreateAccountView: View {
                 }
 
                 LabeledField(title: "Choose Password") {
-                    SecureField("Min. 8 characters", text: $password)
+                    HStack {
+                        if showPassword {
+                            TextField("Min. 8 characters", text: $password)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled(true)
+                        } else {
+                            SecureField("Min. 8 characters", text: $password)
+                        }
+
+                        Button {
+                            showPassword.toggle()
+                        } label: {
+                            Image(systemName: showPassword ? "eye.slash" : "eye")
+                                .foregroundStyle(.gray)
+                        }
+                    }
                 }
 
                 LabeledField(title: "Confirm Password") {
-                    SecureField("Repeat password", text: $confirmPassword)
+                    HStack {
+                        if showConfirmPassword {
+                            TextField("Repeat password", text: $confirmPassword)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled(true)
+                        } else {
+                            SecureField("Repeat password", text: $confirmPassword)
+                        }
+
+                        Button {
+                            showConfirmPassword.toggle()
+                        } label: {
+                            Image(systemName: showConfirmPassword ? "eye.slash" : "eye")
+                                .foregroundStyle(.gray)
+                        }
+                    }
                 }
 
                 if showError {

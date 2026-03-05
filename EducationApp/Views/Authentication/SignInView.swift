@@ -6,6 +6,7 @@ struct SignInView: View {
 
     @State private var email: String = ""
     @State private var password: String = ""
+    @State private var showPassword: Bool = false
 
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
@@ -78,18 +79,33 @@ struct SignInView: View {
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(.black.opacity(0.65))
 
-                        SecureField("Your password", text: $password)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 14)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(showError ? Color.red : Color.black.opacity(0.08),
-                                                    lineWidth: showError ? 2 : 1)
-                                    )
-                            )
+                        HStack {
+                            if showPassword {
+                                TextField("Your password", text: $password)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled(true)
+                            } else {
+                                SecureField("Your password", text: $password)
+                            }
+
+                            Button {
+                                showPassword.toggle()
+                            } label: {
+                                Image(systemName: showPassword ? "eye.slash" : "eye")
+                                    .foregroundStyle(.gray)
+                            }
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.white)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(showError ? Color.red : Color.black.opacity(0.08),
+                                                lineWidth: showError ? 2 : 1)
+                                )
+                        )
                     }
 
                     if showError {
