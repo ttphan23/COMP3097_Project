@@ -77,6 +77,7 @@ struct SignInView: View {
                             .foregroundStyle(.black.opacity(0.65))
 
                         SecureField("Your password", text: $password)
+                            .textContentType(.none)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 14)
                             .background(

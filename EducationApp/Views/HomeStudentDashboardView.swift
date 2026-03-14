@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeStudentDashboardView: View {
     @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @StateObject private var loc = LocalizationManager.shared
     @State private var stats = (totalCoursesEnrolled: 0, totalCoursesCompleted: 0, totalLessonsCompleted: 0, averageProgress: 0.0)
     @State private var showNotifications: Bool = false
     @State private var showAddAssignment: Bool = false
@@ -40,7 +41,7 @@ struct HomeStudentDashboardView: View {
                             .tracking(0.5)
                             .foregroundStyle(Color(red: 1, green: 0.49, blue: 0.37))
 
-                        Text("Home")
+                        Text(loc.localized("Home"))
                             .font(.system(size: 20, weight: .bold, design: .rounded))
                             .foregroundStyle(.black.opacity(0.9))
                     }
@@ -69,7 +70,7 @@ struct HomeStudentDashboardView: View {
                                 .font(.system(size: 32, weight: .bold, design: .rounded))
                                 .foregroundStyle(.black.opacity(0.9))
 
-                            Text("Ready for a super productive day?")
+                            Text(loc.localized("Ready for a super productive day?"))
                                 .font(.system(size: 16))
                                 .foregroundStyle(.black.opacity(0.5))
                         }
@@ -83,7 +84,7 @@ struct HomeStudentDashboardView: View {
                             let progressPercent = Int(stats.averageProgress)
                             HStack(spacing: 16) {
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text("Your Week")
+                                    Text(loc.localized("Your Week"))
                                         .font(.system(size: 18, weight: .bold, design: .rounded))
                                         .foregroundStyle(.black.opacity(0.9))
 
@@ -144,13 +145,13 @@ struct HomeStudentDashboardView: View {
                         // Keep Going Section
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Keep Going! 🚀")
+                                Text("\(loc.localized("Keep Going!")) 🚀")
                                     .font(.system(size: 22, weight: .bold, design: .rounded))
                                     .foregroundStyle(.black.opacity(0.9))
 
                                 Spacer()
 
-                                Button("See All") {
+                                Button(loc.localized("See All")) {
                                     selectedTab = 1
                                 }
                                 .font(.system(size: 13, weight: .bold))
@@ -237,7 +238,7 @@ struct HomeStudentDashboardView: View {
                                                 Spacer()
 
                                                 NavigationLink(destination: CourseDetailsView(course: recent.course).navigationBarHidden(true)) {
-                                                    Text("Jump back in")
+                                                    Text(loc.localized("Jump back in"))
                                                         .font(.system(size: 12, weight: .bold))
                                                         .foregroundStyle(.white)
                                                         .frame(minWidth: 100)
@@ -261,10 +262,10 @@ struct HomeStudentDashboardView: View {
                                     Image(systemName: "books.vertical.fill")
                                         .font(.system(size: 36))
                                         .foregroundStyle(.gray.opacity(0.3))
-                                    Text("No courses yet")
+                                    Text(loc.localized("No courses yet"))
                                         .font(.system(size: 15, weight: .semibold))
                                         .foregroundStyle(.gray.opacity(0.6))
-                                    Button("Browse Catalog") {
+                                    Button(loc.localized("Browse Catalog")) {
                                         selectedTab = 1
                                     }
                                     .font(.system(size: 13, weight: .bold))
@@ -286,7 +287,7 @@ struct HomeStudentDashboardView: View {
                         // Don't Forget Section - Dynamic Assignments
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Don't Forget! ✏️")
+                                Text("\(loc.localized("Don't Forget!")) ✏️")
                                     .font(.system(size: 22, weight: .bold, design: .rounded))
                                     .foregroundStyle(.black.opacity(0.9))
 
@@ -307,7 +308,7 @@ struct HomeStudentDashboardView: View {
                                     Image(systemName: "checkmark.circle.fill")
                                         .font(.system(size: 32))
                                         .foregroundStyle(Color.green.opacity(0.4))
-                                    Text("All caught up!")
+                                    Text(loc.localized("All caught up!"))
                                         .font(.system(size: 14, weight: .semibold))
                                         .foregroundStyle(.gray.opacity(0.6))
                                 }

@@ -118,6 +118,7 @@ struct CreateAccountView: View {
                             .foregroundStyle(.black.opacity(0.65))
 
                         SecureField("Min. 8 characters", text: $password)
+                            .textContentType(.none)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 14)
                             .background(
@@ -137,6 +138,7 @@ struct CreateAccountView: View {
                             .foregroundStyle(.black.opacity(0.65))
 
                         SecureField("Repeat password", text: $confirmPassword)
+                            .textContentType(.none)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 14)
                             .background(

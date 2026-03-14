@@ -398,8 +398,8 @@ struct NotebookView: View {
                                 )
                         }
                     }
-                    .padding(.left, 12)
-                    .padding(.right, 8)
+                    .padding(.leading, 12)
+                    .padding(.trailing, 8)
                     .padding(.top, 12)
 
                     // Red margin line

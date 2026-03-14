@@ -4,6 +4,7 @@ struct CourseCatalogView: View {
     @State private var searchText: String = ""
     @State private var selectedCategory: String = "All"
     @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @StateObject private var loc = LocalizationManager.shared
     @State private var enrolledCourses: Set<String> = []
     @State private var showNotifications: Bool = false
 
@@ -30,7 +31,7 @@ struct CourseCatalogView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Course Catalog")
+                            Text(loc.localized("Course Catalog"))
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundStyle(.black.opacity(0.9))
 
@@ -70,7 +71,7 @@ struct CourseCatalogView: View {
                             .font(.system(size: 16))
                             .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
 
-                        TextField("What do you want to learn today?", text: $searchText)
+                        TextField(loc.localized("What do you want to learn today?"), text: $searchText)
                             .font(.system(size: 15))
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled(true)
@@ -113,7 +114,7 @@ struct CourseCatalogView: View {
                                 Image(systemName: "magnifyingglass")
                                     .font(.system(size: 40))
                                     .foregroundStyle(.gray.opacity(0.3))
-                                Text("No courses found")
+                                Text(loc.localized("No courses found"))
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.gray.opacity(0.6))
                                 Text("Try a different search or category")
@@ -164,21 +165,6 @@ struct CourseCatalogView: View {
                 }
             }
 
-            // Bottom Navigation
-            VStack(spacing: 0) {
-                Spacer()
-
-                Divider()
-
-                HStack(spacing: 0) {
-                    NavigationTab(icon: "sparkles", label: "Catalog", isActive: true)
-                    NavigationTab(icon: "book.fill", label: "Courses", isActive: false)
-                    NavigationTab(icon: "bookmark.fill", label: "Saved", isActive: false)
-                    NavigationTab(icon: "person.crop.circle", label: "Profile", isActive: false)
-                }
-                .frame(height: 70)
-                .background(Color.white.opacity(0.9))
-            }
         }
     }
 }
@@ -337,7 +323,7 @@ struct CourseCard: View {
                             onEnroll(courseId)
                         }
                     }) {
-                        Text(isEnrolled ? "Enrolled" : "Enroll Now")
+                        Text(isEnrolled ? LocalizationManager.shared.localized("Enrolled") : LocalizationManager.shared.localized("Enroll Now"))
                             .font(.system(size: 13, weight: .bold))
                             .foregroundStyle(isEnrolled ? .black.opacity(0.9) : .white)
                             .frame(minWidth: 100)

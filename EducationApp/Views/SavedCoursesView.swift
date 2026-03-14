@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SavedCoursesView: View {
     @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @StateObject private var loc = LocalizationManager.shared
     @State private var favoriteCourses: [CourseProgress] = []
 
     var body: some View {
@@ -11,11 +12,11 @@ struct SavedCoursesView: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Saved Courses")
+                        Text(loc.localized("Saved Courses"))
                             .font(.system(size: 28, weight: .bold))
                             .foregroundStyle(.black.opacity(0.9))
 
-                        Text("Your bookmarked learning materials")
+                        Text(loc.localized("Your bookmarked learning materials"))
                             .font(.system(size: 13))
                             .foregroundStyle(.gray.opacity(0.6))
                     }
@@ -35,11 +36,11 @@ struct SavedCoursesView: View {
                                     .foregroundStyle(Color.gray.opacity(0.3))
 
                                 VStack(spacing: 6) {
-                                    Text("No Saved Courses Yet")
+                                    Text(loc.localized("No Saved Courses Yet"))
                                         .font(.system(size: 18, weight: .bold))
                                         .foregroundStyle(.black.opacity(0.85))
 
-                                    Text("Bookmark courses to save them for later")
+                                    Text(loc.localized("Bookmark courses to save them for later"))
                                         .font(.system(size: 13))
                                         .foregroundStyle(.gray.opacity(0.6))
                                         .multilineTextAlignment(.center)
@@ -50,7 +51,7 @@ struct SavedCoursesView: View {
                                         Image(systemName: "sparkles")
                                             .font(.system(size: 14, weight: .semibold))
 
-                                        Text("Browse Catalog")
+                                        Text(loc.localized("Browse Catalog"))
                                             .font(.system(size: 14, weight: .bold))
                                     }
                                     .foregroundStyle(.white)

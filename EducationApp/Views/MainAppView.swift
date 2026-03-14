@@ -3,6 +3,7 @@ import SwiftUI
 struct MainAppView: View {
     @State private var selectedTab: Int = 0
     @Binding var isLoggedIn: Bool
+    @StateObject private var loc = LocalizationManager.shared
 
     var body: some View {
         ZStack {
@@ -13,7 +14,7 @@ struct MainAppView: View {
                 }
                 .tag(0)
                 .tabItem {
-                    Label("Home", systemImage: "house.fill")
+                    Label(loc.localized("Home"), systemImage: "house.fill")
                 }
 
                 // Catalog Tab
@@ -22,7 +23,7 @@ struct MainAppView: View {
                 }
                 .tag(1)
                 .tabItem {
-                    Label("Catalog", systemImage: "sparkles")
+                    Label(loc.localized("Catalog"), systemImage: "sparkles")
                 }
 
                 // Bookmarks Tab
@@ -31,7 +32,7 @@ struct MainAppView: View {
                 }
                 .tag(2)
                 .tabItem {
-                    Label("Saved", systemImage: "bookmark.fill")
+                    Label(loc.localized("Saved"), systemImage: "bookmark.fill")
                 }
 
                 // Profile Tab
@@ -40,7 +41,7 @@ struct MainAppView: View {
                 }
                 .tag(3)
                 .tabItem {
-                    Label("Profile", systemImage: "person.crop.circle")
+                    Label(loc.localized("Profile"), systemImage: "person.crop.circle")
                 }
             }
             .tint(Color(red: 0.231, green: 0.51, blue: 0.96))

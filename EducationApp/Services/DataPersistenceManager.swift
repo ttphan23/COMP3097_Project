@@ -393,8 +393,15 @@ class DataPersistenceManager: ObservableObject {
 
     func seedDefaultAssignments() {
         let fetchRequest: NSFetchRequest<CDAssignment> = CDAssignment.fetchRequest()
-        let count = (try? context.count(for: fetchRequest)) ?? 0
-        guard count == 0 else { return }
+        fetchRequest.predicate = NSPredicate(format: "isCompleted == NO")
+        let pendingCount = (try? context.count(for: fetchRequest)) ?? 0
+        guard pendingCount == 0 else { return }
+
+        // Clear old completed assignments before re-seeding
+        let allRequest: NSFetchRequest<CDAssignment> = CDAssignment.fetchRequest()
+        if let old = try? context.fetch(allRequest) {
+            old.forEach { context.delete($0) }
+        }
 
         let calendar = Calendar.current
         let today = Date()
@@ -402,7 +409,12 @@ class DataPersistenceManager: ObservableObject {
         let defaults: [(String, String, String, Int)] = [
             ("History Essay", "Modern World History", "book.fill", 0),
             ("Calculus Quiz", "Differentiation Rules", "function", 1),
-            ("Physics Lab", "Electromagnetism", "flask.fill", 3),
+            ("Physics Lab Report", "Electromagnetism", "flask.fill", 3),
+            ("Algorithm Problem Set", "Algorithm Design", "laptopcomputer", 5),
+            ("Psychology Research Paper", "Introduction to Psychology", "pencil", 7),
+            ("Art Movement Presentation", "Modern Art History", "book.fill", 10),
+            ("Business Case Study", "Business Strategy", "doc.fill", 12),
+            ("Quantum Mechanics Quiz", "Quantum Physics 101", "function", 14),
         ]
 
         for (title, course, icon, daysFromNow) in defaults {
