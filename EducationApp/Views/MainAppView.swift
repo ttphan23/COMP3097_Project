@@ -9,7 +9,7 @@ struct MainAppView: View {
             TabView(selection: $selectedTab) {
                 // Home Tab
                 NavigationStack {
-                    HomeStudentDashboardView()
+                    HomeStudentDashboardView(selectedTab: $selectedTab)
                 }
                 .tag(0)
                 .tabItem {

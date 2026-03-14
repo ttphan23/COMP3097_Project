@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23231" systemVersion="24A335" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="NO" userDefinedModelVersionIdentifier="">
+    <entity name="CDUserProfile" representedClassName="CDUserProfile" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="email" attributeType="String"/>
+        <attribute name="university" attributeType="String"/>
+        <attribute name="profileImageURL" optional="YES" attributeType="String"/>
+        <attribute name="createdDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="coursesCompleted" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="streakDays" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastActiveDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="CDCourseProgress" representedClassName="CDCourseProgress" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="courseId" attributeType="String"/>
+        <attribute name="courseName" attributeType="String"/>
+        <attribute name="category" attributeType="String"/>
+        <attribute name="enrollmentDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="completionPercentage" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="lessonsCompleted" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="totalLessons" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastAccessedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isFavorite" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="estimatedCompletionDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="CDLessonProgress" representedClassName="CDLessonProgress" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="lessonId" attributeType="String"/>
+        <attribute name="courseId" attributeType="String"/>
+        <attribute name="lessonName" attributeType="String"/>
+        <attribute name="isCompleted" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="watchedDuration" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="totalDuration" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="completionDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastWatchedPosition" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="notes" attributeType="String" defaultValueString=""/>
+        <attribute name="rating" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="CDAssignment" representedClassName="CDAssignment" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="title" attributeType="String"/>
+        <attribute name="courseName" attributeType="String"/>
+        <attribute name="dueDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isCompleted" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="icon" attributeType="String" defaultValueString="doc.fill"/>
+    </entity>
+    <entity name="CDUserPreferences" representedClassName="CDUserPreferences" syncable="YES" codeGenerationType="class">
+        <attribute name="notificationsEnabled" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="darkModeEnabled" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="language" attributeType="String" defaultValueString="English"/>
+        <attribute name="autoPlayEnabled" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="playbackQuality" attributeType="String" defaultValueString="High"/>
+        <attribute name="privacyLevel" attributeType="String" defaultValueString="Public"/>
+        <attribute name="emailNotifications" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="pushNotifications" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="theme" attributeType="String" defaultValueString="Light"/>
+    </entity>
+</model>

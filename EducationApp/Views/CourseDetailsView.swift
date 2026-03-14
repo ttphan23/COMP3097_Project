@@ -2,6 +2,25 @@ import SwiftUI
 
 struct CourseDetailsView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var persistenceManager = DataPersistenceManager.shared
+
+    let course: Course
+    @State private var isFavorite: Bool = false
+    @State private var completedModuleIds: Set<String> = []
+
+    var completionPercentage: Double {
+        guard !course.modules.isEmpty else { return 0 }
+        return Double(completedModuleIds.count) / Double(course.modules.count)
+    }
+
+    var currentModuleIndex: Int {
+        for (index, module) in course.modules.enumerated() {
+            if !completedModuleIds.contains(module.id) {
+                return index
+            }
+        }
+        return course.modules.count
+    }
 
     var body: some View {
         ZStack {
@@ -26,10 +45,26 @@ struct CourseDetailsView: View {
 
                     Spacer()
 
-                    Button(action: {}) {
-                        Image(systemName: "bookmark")
+                    Button(action: {
+                        // Ensure course is enrolled before favoriting
+                        if persistenceManager.getCourseProgress(for: course.id) == nil {
+                            let progress = CourseProgress(
+                                courseId: course.id,
+                                courseName: course.title,
+                                category: course.category,
+                                enrollmentDate: Date(),
+                                totalLessons: course.modules.count,
+                                isFavorite: true
+                            )
+                            persistenceManager.saveCourseProgress(progress)
+                        } else {
+                            persistenceManager.toggleCourseFavorite(courseId: course.id)
+                        }
+                        isFavorite.toggle()
+                    }) {
+                        Image(systemName: isFavorite ? "bookmark.fill" : "bookmark")
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.gray.opacity(0.6))
+                            .foregroundStyle(isFavorite ? Color(red: 0.231, green: 0.51, blue: 0.96) : .gray.opacity(0.6))
                             .frame(width: 40, height: 40)
                     }
                 }
@@ -46,7 +81,7 @@ struct CourseDetailsView: View {
                         ZStack(alignment: .bottomLeading) {
                             Image(systemName: "book.circle.fill")
                                 .font(.system(size: 200))
-                                .foregroundStyle(Color.blue.opacity(0.1))
+                                .foregroundStyle(colorForCategory(course.category).opacity(0.1))
                                 .frame(maxWidth: .infinity, alignment: .trailing)
 
                             LinearGradient(
@@ -75,7 +110,7 @@ struct CourseDetailsView: View {
                                 .background(Color.white.opacity(0.2))
                                 .cornerRadius(12)
 
-                                Text("Introduction to Psychology")
+                                Text(course.title)
                                     .font(.system(size: 28, weight: .bold, design: .default))
                                     .foregroundStyle(.white)
                                     .lineLimit(3)
@@ -83,7 +118,7 @@ struct CourseDetailsView: View {
                             .padding(20)
                         }
                         .frame(height: 280)
-                        .background(Color.blue.opacity(0.1))
+                        .background(colorForCategory(course.category).opacity(0.1))
                         .cornerRadius(32)
                         .padding(20)
 
@@ -95,11 +130,11 @@ struct CourseDetailsView: View {
                                         .font(.system(size: 12))
                                         .foregroundStyle(Color(red: 1, green: 0.84, blue: 0))
 
-                                    Text("4.9")
+                                    Text(String(format: "%.1f", course.rating))
                                         .font(.system(size: 13, weight: .bold))
                                         .foregroundStyle(.black.opacity(0.9))
 
-                                    Text("(2k reviews)")
+                                    Text("(\(course.reviewCount) reviews)")
                                         .font(.system(size: 11))
                                         .foregroundStyle(.gray.opacity(0.5))
                                 }
@@ -115,7 +150,7 @@ struct CourseDetailsView: View {
                                         .font(.system(size: 12))
                                         .foregroundStyle(.gray.opacity(0.5))
 
-                                    Text("12k Students")
+                                    Text("\(course.studentCount) Students")
                                         .font(.system(size: 13, weight: .semibold))
                                         .foregroundStyle(.black.opacity(0.85))
                                 }
@@ -131,7 +166,7 @@ struct CourseDetailsView: View {
                                         .font(.system(size: 12))
                                         .foregroundStyle(.gray.opacity(0.5))
 
-                                    Text("18h Total")
+                                    Text("\(course.totalHours) Total")
                                         .font(.system(size: 13, weight: .semibold))
                                         .foregroundStyle(.black.opacity(0.85))
                                 }
@@ -169,30 +204,16 @@ struct CourseDetailsView: View {
                                     .tracking(0.5)
                                     .foregroundStyle(Color(red: 0.176, green: 0.357, blue: 0.94))
 
-                                Text("Dr. Sarah Jenkins")
+                                Text(course.instructor)
                                     .font(.system(size: 16, weight: .bold))
                                     .foregroundStyle(.black.opacity(0.9))
 
-                                Text("Dept. of Behavioral Sciences")
+                                Text(course.instructorDepartment)
                                     .font(.system(size: 11))
                                     .foregroundStyle(.gray.opacity(0.55))
                             }
 
                             Spacer()
-
-                            Button(action: {}) {
-                                Text("Profile")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .foregroundStyle(.black.opacity(0.8))
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.gray.opacity(0.15), lineWidth: 1)
-                                    )
-                                    .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-                            }
                         }
                         .padding(16)
                         .background(Color.gray.opacity(0.03))
@@ -213,13 +234,9 @@ struct CourseDetailsView: View {
                             }
 
                             VStack(alignment: .leading, spacing: 16) {
-                                ObjectiveItem(
-                                    text: "Master the foundational principles of neuroscience and how they relate to everyday human behavior."
-                                )
-
-                                ObjectiveItem(
-                                    text: "Develop critical thinking skills to evaluate psychological research and data across diverse cultures."
-                                )
+                                ForEach(course.objectives, id: \.self) { objective in
+                                    ObjectiveItem(text: objective)
+                                }
                             }
                         }
                         .padding(.horizontal, 20)
@@ -233,7 +250,7 @@ struct CourseDetailsView: View {
                                         .font(.system(size: 18, weight: .bold, design: .default))
                                         .foregroundStyle(.black.opacity(0.9))
 
-                                    Text("12 Lessons • 3 Assignments")
+                                    Text("\(course.modules.count) Lessons")
                                         .font(.system(size: 11))
                                         .foregroundStyle(.gray.opacity(0.4))
                                 }
@@ -241,7 +258,7 @@ struct CourseDetailsView: View {
                                 Spacer()
 
                                 VStack(alignment: .trailing, spacing: 6) {
-                                    Text("35% Done")
+                                    Text("\(Int(completionPercentage * 100))% Done")
                                         .font(.system(size: 12, weight: .bold))
                                         .foregroundStyle(Color(red: 0.176, green: 0.357, blue: 0.94))
 
@@ -251,55 +268,51 @@ struct CourseDetailsView: View {
 
                                         RoundedRectangle(cornerRadius: 2)
                                             .fill(Color(red: 0.176, green: 0.357, blue: 0.94))
-                                            .frame(width: 28.8, alignment: .leading)
+                                            .frame(width: CGFloat(82 * completionPercentage), alignment: .leading)
                                     }
                                     .frame(width: 82, height: 6)
                                 }
                             }
 
                             VStack(spacing: 12) {
-                                // Completed Module - Navigable
-                                NavigationLink(destination: LessonView().navigationBarHidden(true)) {
-                                    CourseModuleCard(
-                                        icon: "checkmark.circle.fill",
-                                        iconColor: Color.green,
-                                        backgroundColor: Color.blue.opacity(0.03),
-                                        borderColor: Color.gray.opacity(0.1),
-                                        title: "1. Foundations of Behavior",
-                                        subtitle: "12 mins",
-                                        isCompleted: true,
-                                        isCurrent: false,
-                                        isLocked: false
-                                    )
-                                }
+                                ForEach(Array(course.modules.enumerated()), id: \.element.id) { index, module in
+                                    let isCompleted = completedModuleIds.contains(module.id)
+                                    let isCurrent = index == currentModuleIndex
+                                    let isLocked = index > currentModuleIndex
 
-                                // Current Module - Navigable
-                                NavigationLink(destination: LessonView().navigationBarHidden(true)) {
-                                    CourseModuleCard(
-                                        icon: "play.fill",
-                                        iconColor: Color.white,
-                                        backgroundColor: Color(red: 0.176, green: 0.357, blue: 0.94).opacity(0.08),
-                                        borderColor: Color(red: 0.176, green: 0.357, blue: 0.94).opacity(0.2),
-                                        title: "2. Cognitive Processes",
-                                        subtitle: "Current Module",
-                                        isCompleted: false,
-                                        isCurrent: true,
-                                        isLocked: false
-                                    )
+                                    if !isLocked {
+                                        NavigationLink(destination: LessonView(
+                                            lessonId: module.id,
+                                            courseId: course.id,
+                                            lessonName: module.title,
+                                            totalDuration: 24.0
+                                        ).navigationBarHidden(true)) {
+                                            CourseModuleCard(
+                                                icon: isCompleted ? "checkmark.circle.fill" : (isCurrent ? "play.fill" : "lock.fill"),
+                                                iconColor: isCompleted ? Color.green : (isCurrent ? Color.white : Color.gray.opacity(0.3)),
+                                                backgroundColor: isCompleted ? Color.blue.opacity(0.03) : (isCurrent ? Color(red: 0.176, green: 0.357, blue: 0.94).opacity(0.08) : Color.gray.opacity(0.03)),
+                                                borderColor: isCompleted ? Color.gray.opacity(0.1) : (isCurrent ? Color(red: 0.176, green: 0.357, blue: 0.94).opacity(0.2) : Color.gray.opacity(0.1)),
+                                                title: module.title,
+                                                subtitle: isCompleted ? "Completed" : (isCurrent ? "Current Module" : module.duration),
+                                                isCompleted: isCompleted,
+                                                isCurrent: isCurrent,
+                                                isLocked: false
+                                            )
+                                        }
+                                    } else {
+                                        CourseModuleCard(
+                                            icon: "lock.fill",
+                                            iconColor: Color.gray.opacity(0.3),
+                                            backgroundColor: Color.gray.opacity(0.03),
+                                            borderColor: Color.gray.opacity(0.1),
+                                            title: module.title,
+                                            subtitle: module.duration,
+                                            isCompleted: false,
+                                            isCurrent: false,
+                                            isLocked: true
+                                        )
+                                    }
                                 }
-
-                                // Locked Module
-                                CourseModuleCard(
-                                    icon: "lock.fill",
-                                    iconColor: Color.gray.opacity(0.3),
-                                    backgroundColor: Color.gray.opacity(0.03),
-                                    borderColor: Color.gray.opacity(0.1),
-                                    title: "3. Social Psychology",
-                                    subtitle: "Quiz • 15 mins",
-                                    isCompleted: false,
-                                    isCurrent: false,
-                                    isLocked: true
-                                )
                             }
                         }
                         .padding(.horizontal, 20)
@@ -313,21 +326,41 @@ struct CourseDetailsView: View {
                 Spacer()
 
                 VStack(spacing: 14) {
-                    NavigationLink(destination: LessonView().navigationBarHidden(true)) {
-                        HStack(spacing: 12) {
-                            Text("Resume Learning")
-                                .font(.system(size: 16, weight: .heavy))
-                                .foregroundStyle(.white)
+                    if currentModuleIndex < course.modules.count {
+                        let currentModule = course.modules[currentModuleIndex]
+                        NavigationLink(destination: LessonView(
+                            lessonId: currentModule.id,
+                            courseId: course.id,
+                            lessonName: currentModule.title,
+                            totalDuration: 24.0
+                        ).navigationBarHidden(true)) {
+                            HStack(spacing: 12) {
+                                Text(completedModuleIds.isEmpty ? "Start Learning" : "Resume Learning")
+                                    .font(.system(size: 16, weight: .heavy))
+                                    .foregroundStyle(.white)
 
-                            Image(systemName: "arrow.forward")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.white)
+                                Image(systemName: "arrow.forward")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(.white)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(Color(red: 0.176, green: 0.357, blue: 0.94))
+                            .cornerRadius(20)
+                            .shadow(color: Color(red: 0.176, green: 0.357, blue: 0.94).opacity(0.4), radius: 12, x: 0, y: 6)
                         }
+                    } else {
+                        HStack(spacing: 12) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 20))
+                            Text("Course Completed!")
+                                .font(.system(size: 16, weight: .heavy))
+                        }
+                        .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 18)
-                        .background(Color(red: 0.176, green: 0.357, blue: 0.94))
+                        .background(Color.green)
                         .cornerRadius(20)
-                        .shadow(color: Color(red: 0.176, green: 0.357, blue: 0.94).opacity(0.4), radius: 12, x: 0, y: 6)
                     }
 
                     HStack(spacing: 6) {
@@ -359,6 +392,11 @@ struct CourseDetailsView: View {
                     Divider()
                 }
             }
+        }
+        .onAppear {
+            isFavorite = persistenceManager.isCourseFavorite(courseId: course.id)
+            let completed = persistenceManager.getCompletedModuleIds(for: course.id)
+            completedModuleIds = Set(completed)
         }
     }
 }
@@ -453,6 +491,6 @@ struct CourseModuleCard: View {
 
 #Preview {
     NavigationStack {
-        CourseDetailsView()
+        CourseDetailsView(course: CourseStore.sampleCourses[0])
     }
 }

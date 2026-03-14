@@ -8,6 +8,7 @@ struct SignInView: View {
     @State private var password: String = ""
 
     @State private var showError: Bool = false
+    @StateObject private var persistenceManager = DataPersistenceManager.shared
 
     private var isValidEmail: Bool {
         let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -89,14 +90,29 @@ struct SignInView: View {
                     }
 
                     if showError {
-                        Text("Please enter a valid email address (must include @). (No real login yet)")
+                        Text("Please enter a valid email and password.")
                             .font(.caption)
                             .foregroundStyle(.red)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
 
                     Button {
-                        if isValidEmail {
+                        if isValidEmail && !password.isEmpty {
+                            let name = email.components(separatedBy: "@").first?.replacingOccurrences(of: ".", with: " ").capitalized ?? "Student"
+                            let domain = email.components(separatedBy: "@").last ?? ""
+                            let university = domain.replacingOccurrences(of: ".edu", with: "").capitalized + " University"
+
+                            if let existingUser = persistenceManager.currentUser, existingUser.email == email {
+                                // User already exists, just log in
+                            } else {
+                                let user = UserProfile(
+                                    name: name,
+                                    email: email,
+                                    university: university,
+                                    createdDate: Date()
+                                )
+                                persistenceManager.saveCurrentUser(user)
+                            }
                             isLoggedIn = true
                         } else {
                             showError = true

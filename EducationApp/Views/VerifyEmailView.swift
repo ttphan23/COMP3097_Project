@@ -6,6 +6,8 @@ struct VerifyEmailView: View {
     let email: String
 
     @State private var goToWelcome = false
+    @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @State private var resendMessage: String = ""
 
     var body: some View {
         ZStack {
@@ -84,8 +86,13 @@ struct VerifyEmailView: View {
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(.white.opacity(0.55))
 
-                    Button(action: {}) {
-                        Text("Resend Link")
+                    Button(action: {
+                        resendMessage = "Verification link resent!"
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                            resendMessage = ""
+                        }
+                    }) {
+                        Text(resendMessage.isEmpty ? "Resend Link" : resendMessage)
                             .font(.footnote.weight(.bold))
                             .foregroundStyle(Color.blue.opacity(0.95))
                             .padding(.vertical, 10)
@@ -98,6 +105,16 @@ struct VerifyEmailView: View {
                     .padding(.horizontal, 24)
 
                     Button {
+                        let name = email.components(separatedBy: "@").first?.replacingOccurrences(of: ".", with: " ").capitalized ?? "Student"
+                        let domain = email.components(separatedBy: "@").last ?? ""
+                        let university = domain.replacingOccurrences(of: ".edu", with: "").capitalized + " University"
+                        let user = UserProfile(
+                            name: name,
+                            email: email,
+                            university: university,
+                            createdDate: Date()
+                        )
+                        persistenceManager.saveCurrentUser(user)
                         isLoggedIn = true
                     } label: {
                         Text("Continue to Dashboard")

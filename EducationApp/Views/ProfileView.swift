@@ -6,9 +6,11 @@ struct ProfileView: View {
     @StateObject private var persistenceManager = DataPersistenceManager.shared
 
     @State private var showLogoutAlert: Bool = false
+    @State private var showEditProfile: Bool = false
     @State private var notificationsEnabled: Bool = true
     @State private var darkModeEnabled: Bool = false
     @State private var language: String = "English"
+    @State private var stats = (totalCoursesEnrolled: 0, totalCoursesCompleted: 0, totalLessonsCompleted: 0, averageProgress: 0.0)
 
     var body: some View {
         ZStack {
@@ -32,11 +34,11 @@ struct ProfileView: View {
                             )
 
                         VStack(spacing: 4) {
-                            Text("Alex Smith")
+                            Text(persistenceManager.currentUser?.name ?? "Student")
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundStyle(.black.opacity(0.9))
 
-                            Text("alex.smith@stanford.edu")
+                            Text(persistenceManager.currentUser?.email ?? "student@university.edu")
                                 .font(.system(size: 13))
                                 .foregroundStyle(.gray.opacity(0.6))
                         }
@@ -46,7 +48,7 @@ struct ProfileView: View {
                                 .font(.system(size: 12))
                                 .foregroundStyle(Color.green)
 
-                            Text("Stanford University Verified")
+                            Text("\(persistenceManager.currentUser?.university ?? "University") Verified")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(Color.green)
                         }
@@ -72,21 +74,21 @@ struct ProfileView: View {
                                 icon: "book.fill",
                                 iconColor: Color.blue,
                                 title: "Courses Enrolled",
-                                value: "8"
+                                value: "\(stats.totalCoursesEnrolled)"
                             )
 
                             StatCard(
                                 icon: "checkmark.circle.fill",
                                 iconColor: Color.green,
                                 title: "Completed",
-                                value: "3"
+                                value: "\(stats.totalCoursesCompleted)"
                             )
 
                             StatCard(
                                 icon: "flame.fill",
                                 iconColor: Color.orange,
-                                title: "Streak",
-                                value: "12d"
+                                title: "Lessons Done",
+                                value: "\(stats.totalLessonsCompleted)"
                             )
                         }
                     }
@@ -214,7 +216,8 @@ struct ProfileView: View {
                     Spacer(minLength: 20)
                 }
                 .padding(.horizontal, 16)
-                .padding(.vertical, 20)
+                .padding(.top, 70)
+                .padding(.bottom, 20)
             }
 
             // Header
@@ -226,7 +229,7 @@ struct ProfileView: View {
 
                     Spacer()
 
-                    Button(action: {}) {
+                    Button(action: { showEditProfile = true }) {
                         Image(systemName: "pencil")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
@@ -249,16 +252,66 @@ struct ProfileView: View {
                 showLogoutAlert = false
             }
             Button("Sign Out", role: .destructive) {
+                persistenceManager.deleteCurrentUser()
                 isLoggedIn = false
             }
         } message: {
             Text("Are you sure you want to sign out? You'll need to sign in again to access your courses.")
+        }
+        .sheet(isPresented: $showEditProfile) {
+            EditProfileSheet(persistenceManager: persistenceManager)
         }
         .onAppear {
             let prefs = persistenceManager.loadPreferences()
             notificationsEnabled = prefs.notificationsEnabled
             darkModeEnabled = prefs.darkModeEnabled
             language = prefs.language
+            stats = persistenceManager.getAppStatistics()
+        }
+    }
+}
+
+// MARK: - Edit Profile Sheet
+
+struct EditProfileSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let persistenceManager: DataPersistenceManager
+
+    @State private var name: String = ""
+    @State private var email: String = ""
+    @State private var university: String = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Personal Information") {
+                    TextField("Full Name", text: $name)
+                    TextField("Email", text: $email)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.emailAddress)
+                    TextField("University", text: $university)
+                }
+            }
+            .navigationTitle("Edit Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        guard !name.isEmpty, !email.isEmpty else { return }
+                        persistenceManager.updateUserProfile(name: name, email: email, university: university)
+                        dismiss()
+                    }
+                    .disabled(name.isEmpty || email.isEmpty)
+                }
+            }
+            .onAppear {
+                name = persistenceManager.currentUser?.name ?? ""
+                email = persistenceManager.currentUser?.email ?? ""
+                university = persistenceManager.currentUser?.university ?? ""
+            }
         }
     }
 }

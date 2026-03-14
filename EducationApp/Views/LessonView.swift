@@ -11,11 +11,15 @@ struct LessonView: View {
     @State private var lessonCompleted: Bool = false
     @State private var showCompletionMessage: Bool = false
 
-    let lessonId: String = "lesson_2_cognitive_processes"
-    let courseId: String = "course_introduction_psychology"
-    let lessonName: String = "2. Cognitive Processes"
-    let totalDuration: Double = 24.0
-    let completionPercentage: Double = 0.65
+    var lessonId: String = "lesson_2_cognitive_processes"
+    var courseId: String = "course_introduction_psychology"
+    var lessonName: String = "2. Cognitive Processes"
+    var totalDuration: Double = 24.0
+
+    var completionPercentage: Double {
+        guard totalDuration > 0 else { return 0 }
+        return min(currentTime / totalDuration, 1.0)
+    }
 
     var timeString: String {
         let minutes = Int(currentTime) / 60
@@ -40,13 +44,13 @@ struct LessonView: View {
                     VStack(spacing: 0) {
                         VideoPlayerSection(isPlaying: $isPlaying, currentTime: currentTime, totalTimeString: totalTimeString, timeString: timeString, completionPercentage: completionPercentage)
 
-                        LessonTitleSection()
+                        LessonTitleSection(lessonName: lessonName)
 
                         LearningJourneyCard(completionPercentage: completionPercentage)
 
                         StudyNotesSection(studyNotes: $studyNotes)
 
-                        MarkCompleteButton(lessonCompleted: $lessonCompleted, persistenceManager: persistenceManager, lessonId: lessonId, studyNotes: studyNotes, dismiss: dismiss)
+                        MarkCompleteButton(lessonCompleted: $lessonCompleted, persistenceManager: persistenceManager, lessonId: lessonId, courseId: courseId, studyNotes: studyNotes, dismiss: dismiss)
                     }
                 }
             }
@@ -54,7 +58,19 @@ struct LessonView: View {
         .onAppear {
             if let existing = persistenceManager.getLessonProgress(for: lessonId) {
                 lessonCompleted = existing.isCompleted
-                studyNotes = existing.notes
+                if !existing.notes.isEmpty {
+                    studyNotes = existing.notes
+                }
+                currentTime = existing.watchedDuration
+            } else {
+                // Create initial lesson progress with courseId
+                let progress = LessonProgress(
+                    lessonId: lessonId,
+                    courseId: courseId,
+                    lessonName: lessonName,
+                    totalDuration: totalDuration
+                )
+                persistenceManager.saveLessonProgress(progress)
             }
         }
         .onChange(of: currentTime) {
@@ -64,6 +80,9 @@ struct LessonView: View {
                 totalDuration: totalDuration
             )
         }
+        .onChange(of: studyNotes) {
+            persistenceManager.saveLessonNotes(lessonId: lessonId, notes: studyNotes)
+        }
     }
 }
 
@@ -71,6 +90,7 @@ struct LessonView: View {
 
 struct LessonHeaderView: View {
     let dismiss: DismissAction
+    @State private var showSettings: Bool = false
 
     var body: some View {
         HStack {
@@ -93,7 +113,7 @@ struct LessonHeaderView: View {
 
             Spacer()
 
-            Button(action: {}) {
+            Button(action: { showSettings = true }) {
                 Image(systemName: "gear")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.gray.opacity(0.6))
@@ -110,6 +130,50 @@ struct LessonHeaderView: View {
         .background(Color.white.opacity(0.8))
         .overlay(alignment: .bottom) {
             Divider()
+        }
+        .sheet(isPresented: $showSettings) {
+            LessonSettingsSheet()
+        }
+    }
+}
+
+struct LessonSettingsSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @State private var autoPlay: Bool = true
+    @State private var quality: String = "High"
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Playback") {
+                    Toggle("Auto-play next lesson", isOn: $autoPlay)
+                    Picker("Video Quality", selection: $quality) {
+                        Text("Low").tag("Low")
+                        Text("Medium").tag("Medium")
+                        Text("High").tag("High")
+                    }
+                }
+                Section("About") {
+                    HStack {
+                        Text("App Version")
+                        Spacer()
+                        Text("1.0").foregroundStyle(.gray)
+                    }
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .onAppear {
+                let prefs = persistenceManager.loadPreferences()
+                autoPlay = prefs.autoPlayEnabled
+                quality = prefs.playbackQuality
+            }
         }
     }
 }
@@ -205,6 +269,8 @@ struct ProgressBarView: View {
 }
 
 struct LessonTitleSection: View {
+    let lessonName: String
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
@@ -222,12 +288,12 @@ struct LessonTitleSection: View {
             .background(Color.blue.opacity(0.15))
             .cornerRadius(12)
 
-            Text("The History of Cognition")
+            Text(lessonName)
                 .font(.system(size: 28, weight: .black))
                 .foregroundStyle(.black.opacity(0.9))
                 .lineLimit(3)
 
-            Text("Module 1: Foundations of Mind")
+            Text("Lesson in progress")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(.gray.opacity(0.6))
         }
@@ -249,7 +315,7 @@ struct LearningJourneyCard: View {
 
                 Spacer()
 
-                Text("65% COMPLETED")
+                Text("\(Int(completionPercentage * 100))% COMPLETED")
                     .font(.system(size: 11, weight: .black))
                     .foregroundStyle(Color.green)
                     .padding(.horizontal, 8)
@@ -311,11 +377,16 @@ struct StudyNotesSection: View {
 
 struct NotebookView: View {
     @Binding var studyNotes: String
+    @State private var noteColor: Color = .black
+    @State private var showColorPicker: Bool = false
+
+    let noteColors: [Color] = [.black, .blue, .red, .green, .purple, .orange]
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
+                    // Spiral binding dots
                     VStack(spacing: 24) {
                         ForEach(0..<8, id: \.self) { _ in
                             Circle()
@@ -328,69 +399,81 @@ struct NotebookView: View {
                         }
                     }
                     .padding(.left, 12)
-                    .padding(.right, 20)
+                    .padding(.right, 8)
                     .padding(.top, 12)
 
-                    VStack(spacing: 0) {
-                        ForEach(0..<8, id: \.self) { _ in
-                            HStack(spacing: 0) {
-                                Text("")
-                                    .frame(height: 32)
+                    // Red margin line
+                    Rectangle()
+                        .fill(Color.red.opacity(0.3))
+                        .frame(width: 2)
+                        .padding(.vertical, 4)
 
-                                Divider()
-                                    .frame(height: 1)
-                                    .background(Color.gray.opacity(0.2))
+                    // Editable text area
+                    TextEditor(text: $studyNotes)
+                        .font(.system(size: 16, design: .monospaced))
+                        .foregroundStyle(noteColor.opacity(0.8))
+                        .scrollContentBackground(.hidden)
+                        .padding(.leading, 8)
+                        .padding(.top, 4)
+                }
+            }
+            .frame(minHeight: 200)
+            .background(Color.white)
+
+            // Tool buttons
+            VStack(spacing: 8) {
+                Button(action: { showColorPicker.toggle() }) {
+                    Image(systemName: "paintpalette.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(noteColor)
+                        .frame(width: 32, height: 32)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 2)
+                        )
+                }
+
+                Button(action: {
+                    let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .short)
+                    studyNotes += "\n[\(timestamp)] "
+                }) {
+                    Image(systemName: "clock.badge.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.gray.opacity(0.6))
+                        .frame(width: 32, height: 32)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 2)
+                        )
+                }
+
+                if showColorPicker {
+                    VStack(spacing: 6) {
+                        ForEach(noteColors, id: \.self) { color in
+                            Button(action: {
+                                noteColor = color
+                                showColorPicker = false
+                            }) {
+                                Circle()
+                                    .fill(color)
+                                    .frame(width: 24, height: 24)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(noteColor == color ? Color.white : Color.clear, lineWidth: 2)
+                                    )
+                                    .shadow(radius: noteColor == color ? 2 : 0)
                             }
                         }
                     }
-
-                    Spacer()
-                }
-
-                Spacer()
-            }
-            .frame(minHeight: 200)
-            .overlay(alignment: .topLeading) {
-                Text(studyNotes)
-                    .font(.system(size: 16))
-                    .fontDesign(.monospaced)
-                    .foregroundStyle(.black.opacity(0.8))
-                    .padding(.left, 60)
-                    .padding(.top, 12)
-            }
-            .background(Color.white)
-
-            VStack {
-                Divider()
-                    .frame(width: 2)
-                    .background(Color.red.opacity(0.3))
-            }
-            .frame(width: 2)
-            .padding(.right, 12)
-
-            VStack(spacing: 8) {
-                Button(action: {}) {
-                    Image(systemName: "paintpalette.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.gray.opacity(0.6))
-                        .frame(width: 32, height: 32)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.gray.opacity(0.2), lineWidth: 2)
-                        )
-                }
-
-                Button(action: {}) {
-                    Image(systemName: "paperclip")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.gray.opacity(0.6))
-                        .frame(width: 32, height: 32)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.gray.opacity(0.2), lineWidth: 2)
-                        )
+                    .padding(8)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+                    .shadow(radius: 4)
                 }
             }
             .padding(12)
@@ -408,6 +491,7 @@ struct MarkCompleteButton: View {
     @Binding var lessonCompleted: Bool
     let persistenceManager: DataPersistenceManager
     let lessonId: String
+    let courseId: String
     let studyNotes: String
     let dismiss: DismissAction
 
@@ -415,6 +499,19 @@ struct MarkCompleteButton: View {
         Button(action: {
             persistenceManager.markLessonAsComplete(lessonId: lessonId)
             persistenceManager.saveLessonNotes(lessonId: lessonId, notes: studyNotes)
+
+            // Update course progress
+            let completedCount = persistenceManager.getCompletedModuleIds(for: courseId).count
+            if let courseProgress = persistenceManager.getCourseProgress(for: courseId) {
+                let total = courseProgress.totalLessons
+                let percentage = total > 0 ? (Double(completedCount) / Double(total)) * 100.0 : 0
+                persistenceManager.updateCourseProgress(
+                    courseId: courseId,
+                    completionPercentage: percentage,
+                    lessonsCompleted: completedCount
+                )
+            }
+
             lessonCompleted = true
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {

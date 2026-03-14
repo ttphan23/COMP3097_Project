@@ -5,8 +5,21 @@ struct CourseCatalogView: View {
     @State private var selectedCategory: String = "All"
     @StateObject private var persistenceManager = DataPersistenceManager.shared
     @State private var enrolledCourses: Set<String> = []
+    @State private var showNotifications: Bool = false
 
     let categories = ["All", "Science", "Arts", "Engineering", "Business"]
+    let courses = CourseStore.sampleCourses
+
+    var filteredCourses: [Course] {
+        var result = courses
+        if selectedCategory != "All" {
+            result = result.filter { $0.category == selectedCategory }
+        }
+        if !searchText.isEmpty {
+            result = result.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.category.localizedCaseInsensitiveContains(searchText) || $0.instructor.localizedCaseInsensitiveContains(searchText) }
+        }
+        return result
+    }
 
     var body: some View {
         ZStack {
@@ -35,7 +48,7 @@ struct CourseCatalogView: View {
 
                         Spacer()
 
-                        Button(action: {}) {
+                        Button(action: { showNotifications = true }) {
                             ZStack(alignment: .topTrailing) {
                                 Image(systemName: "bell.fill")
                                     .font(.system(size: 16))
@@ -95,79 +108,47 @@ struct CourseCatalogView: View {
                 // Course List
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 16) {
-                        NavigationLink(destination: CourseDetailsView().navigationBarHidden(true)) {
-                            CourseCard(
-                                courseId: "course_quantum_physics_101",
-                                title: "Quantum Physics 101",
-                                category: "Science",
-                                categoryColor: Color.blue,
-                                duration: "12 Weeks",
-                                difficulty: "Hard",
-                                difficultyColor: Color.red,
-                                studentCount: "12k",
-                                isEnrolled: enrolledCourses.contains("course_quantum_physics_101"),
-                                onEnroll: { courseId in
-                                    let progress = CourseProgress(
-                                        courseId: courseId,
-                                        courseName: "Quantum Physics 101",
-                                        category: "Science",
-                                        enrollmentDate: Date(),
-                                        totalLessons: 12
+                        if filteredCourses.isEmpty {
+                            VStack(spacing: 12) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 40))
+                                    .foregroundStyle(.gray.opacity(0.3))
+                                Text("No courses found")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.gray.opacity(0.6))
+                                Text("Try a different search or category")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(.gray.opacity(0.4))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 60)
+                        } else {
+                            ForEach(filteredCourses) { course in
+                                NavigationLink(destination: CourseDetailsView(course: course).navigationBarHidden(true)) {
+                                    CourseCard(
+                                        courseId: course.id,
+                                        title: course.title,
+                                        category: course.category,
+                                        categoryColor: colorForCategory(course.category),
+                                        duration: course.duration,
+                                        difficulty: course.difficulty,
+                                        difficultyColor: colorForDifficulty(course.difficulty),
+                                        studentCount: course.studentCount,
+                                        isEnrolled: enrolledCourses.contains(course.id),
+                                        onEnroll: { courseId in
+                                            let progress = CourseProgress(
+                                                courseId: courseId,
+                                                courseName: course.title,
+                                                category: course.category,
+                                                enrollmentDate: Date(),
+                                                totalLessons: course.modules.count
+                                            )
+                                            persistenceManager.saveCourseProgress(progress)
+                                            enrolledCourses.insert(courseId)
+                                        }
                                     )
-                                    persistenceManager.saveCourseProgress(progress)
-                                    enrolledCourses.insert(courseId)
                                 }
-                            )
-                        }
-
-                        NavigationLink(destination: CourseDetailsView().navigationBarHidden(true)) {
-                            CourseCard(
-                                courseId: "course_modern_art_history",
-                                title: "Modern Art History",
-                                category: "Arts",
-                                categoryColor: Color.orange,
-                                duration: "6 Weeks",
-                                difficulty: "Easy",
-                                difficultyColor: Color.green,
-                                studentCount: "5k",
-                                isEnrolled: enrolledCourses.contains("course_modern_art_history"),
-                                onEnroll: { courseId in
-                                    let progress = CourseProgress(
-                                        courseId: courseId,
-                                        courseName: "Modern Art History",
-                                        category: "Arts",
-                                        enrollmentDate: Date(),
-                                        totalLessons: 8
-                                    )
-                                    persistenceManager.saveCourseProgress(progress)
-                                    enrolledCourses.insert(courseId)
-                                }
-                            )
-                        }
-
-                        NavigationLink(destination: CourseDetailsView().navigationBarHidden(true)) {
-                            CourseCard(
-                                courseId: "course_algorithm_design",
-                                title: "Algorithm Design",
-                                category: "Engineering",
-                                categoryColor: Color(red: 0.196, green: 0.784, blue: 0.471),
-                                duration: "10 Weeks",
-                                difficulty: "Medium",
-                                difficultyColor: Color.amber,
-                                studentCount: "8k",
-                                isEnrolled: enrolledCourses.contains("course_algorithm_design"),
-                                onEnroll: { courseId in
-                                    let progress = CourseProgress(
-                                        courseId: courseId,
-                                        courseName: "Algorithm Design",
-                                        category: "Engineering",
-                                        enrollmentDate: Date(),
-                                        totalLessons: 10
-                                    )
-                                    persistenceManager.saveCourseProgress(progress)
-                                    enrolledCourses.insert(courseId)
-                                }
-                            )
+                            }
                         }
 
                         Spacer(minLength: 60)
@@ -177,6 +158,9 @@ struct CourseCatalogView: View {
                 .onAppear {
                     let enrolled = persistenceManager.getAllCourseProgress().map { $0.courseId }
                     enrolledCourses = Set(enrolled)
+                }
+                .sheet(isPresented: $showNotifications) {
+                    NotificationsSheet()
                 }
             }
 
@@ -213,7 +197,7 @@ struct CategoryButton: View {
         case "Engineering":
             return Color(red: 0.196, green: 0.784, blue: 0.471)
         case "Business":
-            return Color.amber
+            return Color(red: 0.85, green: 0.65, blue: 0.0)
         default:
             return Color.blue
         }
@@ -398,6 +382,25 @@ struct NavigationTab: View {
         }
         .foregroundStyle(isActive ? Color(red: 0.231, green: 0.51, blue: 0.96) : .gray.opacity(0.4))
         .frame(maxWidth: .infinity)
+    }
+}
+
+func colorForCategory(_ category: String) -> Color {
+    switch category {
+    case "Science": return Color.blue
+    case "Arts": return Color.orange
+    case "Engineering": return Color(red: 0.196, green: 0.784, blue: 0.471)
+    case "Business": return Color(red: 0.85, green: 0.65, blue: 0.0)
+    default: return Color.blue
+    }
+}
+
+func colorForDifficulty(_ difficulty: String) -> Color {
+    switch difficulty {
+    case "Easy": return Color.green
+    case "Medium": return Color(red: 0.85, green: 0.65, blue: 0.0)
+    case "Hard": return Color.red
+    default: return Color.gray
     }
 }
 
