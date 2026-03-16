@@ -2,6 +2,8 @@ import SwiftUI
 
 struct QuizView: View {
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var persistenceManager = DataPersistenceManager.shared
+    let courseId: String
     @State private var selectedAnswer: Int? = nil
     @State private var currentQuestionIndex = 0
     @State private var showFeedback = false
@@ -169,6 +171,13 @@ struct QuizView: View {
             selectedAnswer = nil
             showFeedback = false
         } else {
+            let quizId = "\(courseId)_quiz"
+            persistenceManager.updateLessonProgress(
+                lessonId: quizId,
+                watchedDuration: 1.0,
+                totalDuration: 1.0,
+                isCompleted: true
+                )
             dismiss()
         }
     }
@@ -193,4 +202,8 @@ struct QuizQuestion {
     let options: [String]
     let correctIndex: Int
     let explanation: String
+}
+
+#Preview {
+    QuizView(courseId: "test_course")
 }

@@ -32,9 +32,7 @@ struct CourseCatalogView: View {
                                     .foregroundStyle(.gray.opacity(0.5))
                             }
                         }
-
                         Spacer()
-
                         Button(action: {}) {
                             ZStack(alignment: .topTrailing) {
                                 Image(systemName: "bell.fill")
@@ -77,9 +75,7 @@ struct CourseCatalogView: View {
                                 CategoryButton(
                                     title: category,
                                     isSelected: selectedCategory == category,
-                                    action: {
-                                        selectedCategory = category
-                                    }
+                                    action: { selectedCategory = category }
                                 )
                             }
                         }
@@ -88,85 +84,61 @@ struct CourseCatalogView: View {
                 }
                 .padding(16)
                 .background(Color.white)
-                .overlay(alignment: .bottom) {
-                    Divider()
-                }
+                .overlay(alignment: .bottom) { Divider() }
 
                 // Course List
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 16) {
-                        NavigationLink(destination: CourseDetailsView().navigationBarHidden(true)) {
+
+                        NavigationLink(destination: CourseDetailsView(
+                            courseId: "course_quantum_physics_101",
+                            title: "Quantum Physics 101",
+                            category: "Science",
+                            duration: "12 Weeks",
+                            studentCount: "12k",
+                            rating: "4.9",
+                            reviewsCount: "2k",
+                            instructor: "Dr. Richard Feynman",
+                            instructorDept: "Dept. of Physics"
+                        ).navigationBarHidden(true)) {
                             CourseCard(
-                                courseId: "course_quantum_physics_101",
-                                title: "Quantum Physics 101",
-                                category: "Science",
-                                categoryColor: Color.blue,
-                                duration: "12 Weeks",
-                                difficulty: "Hard",
-                                difficultyColor: Color.red,
-                                studentCount: "12k",
-                                isEnrolled: enrolledCourses.contains("course_quantum_physics_101"),
-                                onEnroll: { courseId in
-                                    let progress = CourseProgress(
-                                        courseId: courseId,
-                                        courseName: "Quantum Physics 101",
-                                        category: "Science",
-                                        enrollmentDate: Date(),
-                                        totalLessons: 12
-                                    )
-                                    persistenceManager.saveCourseProgress(progress)
-                                    enrolledCourses.insert(courseId)
-                                }
+                                courseId: "course_quantum_physics_101", title: "Quantum Physics 101", category: "Science", categoryColor: Color.blue, duration: "12 Weeks", difficulty: "Hard", difficultyColor: Color.red, studentCount: "12k", isEnrolled: enrolledCourses.contains("course_quantum_physics_101"),
+                                onEnroll: { enroll(courseId: $0, name: "Quantum Physics 101", category: "Science", lessons: 12) }
                             )
                         }
 
-                        NavigationLink(destination: CourseDetailsView().navigationBarHidden(true)) {
+
+                        NavigationLink(destination: CourseDetailsView(
+                            courseId: "course_modern_art_history",
+                            title: "Modern Art History",
+                            category: "Arts",
+                            duration: "6 Weeks",
+                            studentCount: "5k",
+                            rating: "4.8",
+                            reviewsCount: "1.5k",
+                            instructor: "Prof. Clara Hughes",
+                            instructorDept: "Dept. of Fine Arts"
+                        ).navigationBarHidden(true)) {
                             CourseCard(
-                                courseId: "course_modern_art_history",
-                                title: "Modern Art History",
-                                category: "Arts",
-                                categoryColor: Color.orange,
-                                duration: "6 Weeks",
-                                difficulty: "Easy",
-                                difficultyColor: Color.green,
-                                studentCount: "5k",
-                                isEnrolled: enrolledCourses.contains("course_modern_art_history"),
-                                onEnroll: { courseId in
-                                    let progress = CourseProgress(
-                                        courseId: courseId,
-                                        courseName: "Modern Art History",
-                                        category: "Arts",
-                                        enrollmentDate: Date(),
-                                        totalLessons: 8
-                                    )
-                                    persistenceManager.saveCourseProgress(progress)
-                                    enrolledCourses.insert(courseId)
-                                }
+                                courseId: "course_modern_art_history", title: "Modern Art History", category: "Arts", categoryColor: Color.orange, duration: "6 Weeks", difficulty: "Easy", difficultyColor: Color.green, studentCount: "5k", isEnrolled: enrolledCourses.contains("course_modern_art_history"),
+                                onEnroll: { enroll(courseId: $0, name: "Modern Art History", category: "Arts", lessons: 8) }
                             )
                         }
 
-                        NavigationLink(destination: CourseDetailsView().navigationBarHidden(true)) {
+                        NavigationLink(destination: CourseDetailsView(
+                            courseId: "course_algorithm_design",
+                            title: "Algorithm Design",
+                            category: "Engineering",
+                            duration: "10 Weeks",
+                            studentCount: "8k",
+                            rating: "4.7",
+                            reviewsCount: "3k",
+                            instructor: "Dr. Alan Turing",
+                            instructorDept: "Dept. of Computer Science"
+                        ).navigationBarHidden(true)) {
                             CourseCard(
-                                courseId: "course_algorithm_design",
-                                title: "Algorithm Design",
-                                category: "Engineering",
-                                categoryColor: Color(red: 0.196, green: 0.784, blue: 0.471),
-                                duration: "10 Weeks",
-                                difficulty: "Medium",
-                                difficultyColor: Color.orange,
-                                studentCount: "8k",
-                                isEnrolled: enrolledCourses.contains("course_algorithm_design"),
-                                onEnroll: { courseId in
-                                    let progress = CourseProgress(
-                                        courseId: courseId,
-                                        courseName: "Algorithm Design",
-                                        category: "Engineering",
-                                        enrollmentDate: Date(),
-                                        totalLessons: 10
-                                    )
-                                    persistenceManager.saveCourseProgress(progress)
-                                    enrolledCourses.insert(courseId)
-                                }
+                                courseId: "course_algorithm_design", title: "Algorithm Design", category: "Engineering", categoryColor: Color(red: 0.196, green: 0.784, blue: 0.471), duration: "10 Weeks", difficulty: "Medium", difficultyColor: Color.orange, studentCount: "8k", isEnrolled: enrolledCourses.contains("course_algorithm_design"),
+                                onEnroll: { enroll(courseId: $0, name: "Algorithm Design", category: "Engineering", lessons: 10) }
                             )
                         }
 
@@ -179,23 +151,13 @@ struct CourseCatalogView: View {
                     enrolledCourses = Set(enrolled)
                 }
             }
-
-            // Bottom Navigation
-            VStack(spacing: 0) {
-                Spacer()
-
-                Divider()
-
-                HStack(spacing: 0) {
-                    NavigationTab(icon: "sparkles", label: "Catalog", isActive: true)
-                    NavigationTab(icon: "book.fill", label: "Courses", isActive: false)
-                    NavigationTab(icon: "bookmark.fill", label: "Saved", isActive: false)
-                    NavigationTab(icon: "person.crop.circle", label: "Profile", isActive: false)
-                }
-                .frame(height: 70)
-                .background(Color.white.opacity(0.9))
-            }
         }
+    }
+    
+    private func enroll(courseId: String, name: String, category: String, lessons: Int) {
+        let progress = CourseProgress(courseId: courseId, courseName: name, category: category, enrollmentDate: Date(), totalLessons: lessons)
+        persistenceManager.saveCourseProgress(progress)
+        enrolledCourses.insert(courseId)
     }
 }
 
@@ -402,5 +364,7 @@ struct NavigationTab: View {
 }
 
 #Preview {
-    CourseCatalogView()
+    NavigationStack {
+        CourseCatalogView()
+    }
 }

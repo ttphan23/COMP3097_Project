@@ -1,21 +1,21 @@
 import SwiftUI
+import Combine
 
 struct LessonView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @ObservedObject private var persistenceManager = DataPersistenceManager.shared
 
-    @State private var currentTime: Double = 12.75
+
+    let lessonId: String
+    let courseId: String
+    let lessonTitle: String
+    let moduleName: String
+    let totalDuration: Double
+
+    @State private var currentTime: Double = 0.0
     @State private var isPlaying: Bool = false
-    @State private var studyNotes: String = "Aristotle's Tabula Rasa...\nThe behaviorist movement in the 1920s..."
-    @State private var showNotesEditor: Bool = false
+    @State private var studyNotes: String = "Tap here to add notes..."
     @State private var lessonCompleted: Bool = false
-    @State private var showCompletionMessage: Bool = false
-
-    let lessonId: String = "lesson_2_cognitive_processes"
-    let courseId: String = "course_introduction_psychology"
-    let lessonName: String = "2. Cognitive Processes"
-    let totalDuration: Double = 24.0
-    let completionPercentage: Double = 0.65
 
     var timeString: String {
         let minutes = Int(currentTime) / 60
@@ -27,6 +27,10 @@ struct LessonView: View {
         let minutes = Int(totalDuration) / 60
         let seconds = Int(totalDuration) % 60
         return String(format: "%d:%02d", minutes, seconds)
+    }
+    
+    var completionPercentage: Double {
+        totalDuration > 0 ? currentTime / totalDuration : 0
     }
 
     var body: some View {
@@ -40,11 +44,24 @@ struct LessonView: View {
                     VStack(spacing: 0) {
                         VideoPlayerSection(isPlaying: $isPlaying, currentTime: currentTime, totalTimeString: totalTimeString, timeString: timeString, completionPercentage: completionPercentage)
 
-                        LessonTitleSection()
+
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(lessonTitle)
+                                .font(.system(size: 28, weight: .black))
+                                .foregroundStyle(.black.opacity(0.9))
+                                .lineLimit(3)
+
+                            Text(moduleName)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.gray.opacity(0.6))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 20).padding(.bottom, 16).padding(.top, 16)
 
                         LearningJourneyCard(completionPercentage: completionPercentage)
 
                         StudyNotesSection(studyNotes: $studyNotes)
+
 
                         MarkCompleteButton(lessonCompleted: $lessonCompleted, persistenceManager: persistenceManager, lessonId: lessonId, studyNotes: studyNotes, dismiss: dismiss)
                     }
@@ -54,15 +71,16 @@ struct LessonView: View {
         .onAppear {
             if let existing = persistenceManager.getLessonProgress(for: lessonId) {
                 lessonCompleted = existing.isCompleted
-                studyNotes = existing.notes
+                studyNotes = existing.notes.isEmpty ? studyNotes : existing.notes
+                currentTime = existing.isCompleted ? totalDuration : existing.watchedDuration
             }
         }
-        .onChange(of: currentTime) {
-            persistenceManager.updateLessonProgress(
-                lessonId: lessonId,
-                watchedDuration: currentTime,
-                totalDuration: totalDuration
-            )
+
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
+            if isPlaying && currentTime < totalDuration {
+                currentTime += 300
+                persistenceManager.updateLessonProgress(lessonId: lessonId, watchedDuration: currentTime, totalDuration: totalDuration)
+            }
         }
     }
 }
@@ -452,6 +470,6 @@ struct MarkCompleteButton: View {
 
 #Preview {
     NavigationStack {
-        LessonView()
+        LessonView(lessonId: "test_1", courseId: "test_course", lessonTitle: "Test Course", moduleName: "Module 1", totalDuration: 120.0)
     }
 }
