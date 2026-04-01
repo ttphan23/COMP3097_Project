@@ -8,6 +8,8 @@ struct SignInView: View {
     @State private var password: String = ""
 
     @State private var showError: Bool = false
+    @State private var errorMessage: String = "Please enter a valid email and password."
+
     @StateObject private var persistenceManager = DataPersistenceManager.shared
 
     private var isValidEmail: Bool {
@@ -77,7 +79,7 @@ struct SignInView: View {
                             .foregroundStyle(.black.opacity(0.65))
 
                         SecureField("Your password", text: $password)
-                            .textContentType(.none)
+                            .textContentType(.password)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 14)
                             .background(
@@ -91,33 +93,49 @@ struct SignInView: View {
                     }
 
                     if showError {
-                        Text("Please enter a valid email and password.")
+                        Text(errorMessage)
                             .font(.caption)
                             .foregroundStyle(.red)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
 
                     Button {
-                        if isValidEmail && !password.isEmpty {
-                            let name = email.components(separatedBy: "@").first?.replacingOccurrences(of: ".", with: " ").capitalized ?? "Student"
-                            let domain = email.components(separatedBy: "@").last ?? ""
-                            let university = domain.replacingOccurrences(of: ".edu", with: "").capitalized + " University"
+                        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                        let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
 
-                            if let existingUser = persistenceManager.currentUser, existingUser.email == email {
-                                // User already exists, just log in
-                            } else {
-                                let user = UserProfile(
-                                    name: name,
-                                    email: email,
-                                    university: university,
-                                    createdDate: Date()
-                                )
-                                persistenceManager.saveCurrentUser(user)
-                            }
-                            isLoggedIn = true
-                        } else {
+                        guard isValidEmail, !trimmedPassword.isEmpty else {
+                            errorMessage = "Please enter a valid email and password."
                             showError = true
+                            return
                         }
+
+                        guard let existingUser = persistenceManager.getSavedUser() else {
+                            errorMessage = "No account found. Please create an account first."
+                            showError = true
+                            return
+                        }
+
+                        let savedEmail = existingUser.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                        let savedPassword = existingUser.password
+
+                        guard savedEmail == trimmedEmail else {
+                            errorMessage = "No account found with that email."
+                            showError = true
+                            return
+                        }
+
+                        guard savedPassword == trimmedPassword else {
+                            errorMessage = "Incorrect password."
+                            showError = true
+                            return
+                        }
+
+                        showError = false
+                        
+                        persistenceManager.currentUser = existingUser
+                        persistenceManager.appData.user = existingUser
+                        
+                        isLoggedIn = true
                     } label: {
                         Text("Sign In")
                             .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -134,6 +152,9 @@ struct SignInView: View {
             }
         }
         .onChange(of: email) {
+            if showError { showError = false }
+        }
+        .onChange(of: password) {
             if showError { showError = false }
         }
     }

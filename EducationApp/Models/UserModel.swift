@@ -3,7 +3,11 @@ import Foundation
 struct UserProfile: Codable {
     var id: String = UUID().uuidString
     var name: String
+    var firstName: String
+    var lastName: String
+    var dob: Date
     var email: String
+    var password: String
     var university: String
     var profileImageURL: String?
     var createdDate: Date
@@ -13,7 +17,7 @@ struct UserProfile: Codable {
     var lastActiveDate: Date?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, email, university, profileImageURL
+        case id, name, firstName, lastName, dob, email, password, university, profileImageURL
         case createdDate, coursesEnrolled, coursesCompleted
         case streakDays, lastActiveDate
     }

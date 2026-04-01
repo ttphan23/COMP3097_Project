@@ -5,24 +5,23 @@ import Combine
 class DataPersistenceManager: ObservableObject {
     @Published var currentUser: UserProfile?
     @Published var appData: AppData = AppData()
+    @Published var assignments: [Assignment] = []
 
     private let coreData = CoreDataStack.shared
     private var context: NSManagedObjectContext { coreData.viewContext }
 
     static let shared = DataPersistenceManager()
 
-    init() {
-        loadCurrentUser()
+    private init() {
         loadAllData()
     }
 
     // MARK: - User Management
 
     func saveCurrentUser(_ user: UserProfile) {
-        self.currentUser = user
+        currentUser = user
         appData.user = user
 
-        // Delete any existing user profiles first
         let fetchRequest: NSFetchRequest<CDUserProfile> = CDUserProfile.fetchRequest()
         if let existing = try? context.fetch(fetchRequest) {
             existing.forEach { context.delete($0) }
@@ -38,44 +37,84 @@ class DataPersistenceManager: ObservableObject {
         cdUser.coursesCompleted = Int32(user.coursesCompleted)
         cdUser.streakDays = Int32(user.streakDays)
         cdUser.lastActiveDate = user.lastActiveDate
+        cdUser.firstName = user.firstName
+        cdUser.lastName = user.lastName
+        cdUser.dob = user.dob
+        cdUser.password = user.password
 
         coreData.save()
     }
 
     func loadCurrentUser() {
         let fetchRequest: NSFetchRequest<CDUserProfile> = CDUserProfile.fetchRequest()
+
         if let cdUser = try? context.fetch(fetchRequest).first {
             let user = UserProfile(
                 id: cdUser.id ?? UUID().uuidString,
                 name: cdUser.name ?? "",
+                firstName: cdUser.firstName ?? "",
+                lastName: cdUser.lastName ?? "",
+                dob: cdUser.dob ?? Date(),
                 email: cdUser.email ?? "",
+                password: cdUser.password ?? "",
                 university: cdUser.university ?? "",
                 profileImageURL: cdUser.profileImageURL,
                 createdDate: cdUser.createdDate ?? Date(),
+                coursesEnrolled: [],
                 coursesCompleted: Int(cdUser.coursesCompleted),
                 streakDays: Int(cdUser.streakDays),
                 lastActiveDate: cdUser.lastActiveDate
             )
-            self.currentUser = user
+
+            currentUser = user
             appData.user = user
+        } else {
+            currentUser = nil
+            appData.user = nil
         }
     }
 
-    func updateUserProfile(name: String, email: String, university: String) {
-        if var user = currentUser {
-            user.name = name
-            user.email = email
-            user.university = university
-            saveCurrentUser(user)
+    func updateUserProfile(firstName: String, lastName: String, email: String, password: String) {
+        guard var user = currentUser else { return }
+
+        user.firstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        user.lastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+        user.name = "\(user.firstName) \(user.lastName)".trimmingCharacters(in: .whitespacesAndNewlines)
+        user.email = email.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !password.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            user.password = password
         }
+
+        saveCurrentUser(user)
+    }
+    
+    func getSavedUser() -> UserProfile? {
+        let fetchRequest: NSFetchRequest<CDUserProfile> = CDUserProfile.fetchRequest()
+
+        guard let cdUser = try? context.fetch(fetchRequest).first else { return nil }
+
+        return UserProfile(
+            id: cdUser.id ?? UUID().uuidString,
+            name: cdUser.name ?? "",
+            firstName: cdUser.firstName ?? "",
+            lastName: cdUser.lastName ?? "",
+            dob: cdUser.dob ?? Date(),
+            email: cdUser.email ?? "",
+            password: cdUser.password ?? "",
+            university: cdUser.university ?? "",
+            profileImageURL: cdUser.profileImageURL,
+            createdDate: cdUser.createdDate ?? Date(),
+            coursesEnrolled: [],
+            coursesCompleted: Int(cdUser.coursesCompleted),
+            streakDays: Int(cdUser.streakDays),
+            lastActiveDate: cdUser.lastActiveDate
+        )
     }
 
-    func deleteCurrentUser() {
+    func signOutUser() {
         currentUser = nil
-        appData = AppData()
-
-        // Clear all Core Data entities
-        clearAllData()
+        appData.user = nil
     }
 
     // MARK: - Preferences Management
@@ -87,6 +126,7 @@ class DataPersistenceManager: ObservableObject {
 
     func loadPreferences() -> UserPreferences {
         let fetchRequest: NSFetchRequest<CDUserPreferences> = CDUserPreferences.fetchRequest()
+
         if let cdPrefs = try? context.fetch(fetchRequest).first {
             return UserPreferences(
                 notificationsEnabled: cdPrefs.notificationsEnabled,
@@ -100,6 +140,7 @@ class DataPersistenceManager: ObservableObject {
                 theme: cdPrefs.theme ?? "Light"
             )
         }
+
         return UserPreferences()
     }
 
@@ -204,19 +245,19 @@ class DataPersistenceManager: ObservableObject {
     }
 
     func getAllCourseProgress() -> [CourseProgress] {
-        return appData.courseProgress
+        appData.courseProgress
     }
 
     func getFavoriteCourses() -> [CourseProgress] {
-        return appData.courseProgress.filter { $0.isFavorite }
+        appData.courseProgress.filter { $0.isFavorite }
     }
 
     func isCourseFavorite(courseId: String) -> Bool {
-        return appData.courseProgress.first(where: { $0.courseId == courseId })?.isFavorite ?? false
+        appData.courseProgress.first(where: { $0.courseId == courseId })?.isFavorite ?? false
     }
 
     func getCompletedModuleIds(for courseId: String) -> [String] {
-        return appData.lessonProgress
+        appData.lessonProgress
             .filter { $0.courseId == courseId && $0.isCompleted }
             .map { $0.lessonId }
     }
@@ -279,9 +320,11 @@ class DataPersistenceManager: ObservableObject {
             cdProgress.totalDuration = totalDuration
             cdProgress.lastWatchedPosition = watchedDuration
             cdProgress.isCompleted = isCompleted
+
             if isCompleted {
                 cdProgress.completionDate = Date()
             }
+
             coreData.save()
             loadAllLessonProgress()
         }
@@ -307,6 +350,7 @@ class DataPersistenceManager: ObservableObject {
         if let cdProgress = try? context.fetch(fetchRequest).first {
             cdProgress.notes = notes
             coreData.save()
+            loadAllLessonProgress()
         }
     }
 
@@ -317,6 +361,7 @@ class DataPersistenceManager: ObservableObject {
         if let cdProgress = try? context.fetch(fetchRequest).first {
             cdProgress.rating = Int32(rating)
             coreData.save()
+            loadAllLessonProgress()
         }
     }
 
@@ -328,13 +373,12 @@ class DataPersistenceManager: ObservableObject {
 
     // MARK: - Assignment Management
 
-    @Published var assignments: [Assignment] = []
-
     func saveAssignment(_ assignment: Assignment) {
         let fetchRequest: NSFetchRequest<CDAssignment> = CDAssignment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", assignment.id)
 
         let cdAssignment: CDAssignment
+
         if let existing = try? context.fetch(fetchRequest).first {
             cdAssignment = existing
         } else {
@@ -375,11 +419,13 @@ class DataPersistenceManager: ObservableObject {
     }
 
     func getAllAssignments() -> [Assignment] {
-        return assignments
+        assignments
     }
 
     func getPendingAssignments() -> [Assignment] {
-        return assignments.filter { !$0.isCompleted }.sorted { $0.dueDate < $1.dueDate }
+        assignments
+            .filter { !$0.isCompleted }
+            .sorted { $0.dueDate < $1.dueDate }
     }
 
     private func loadAllAssignments() {
@@ -388,16 +434,18 @@ class DataPersistenceManager: ObservableObject {
 
         if let results = try? context.fetch(fetchRequest) {
             assignments = results.map { mapAssignment($0) }
+        } else {
+            assignments = []
         }
     }
 
     func seedDefaultAssignments() {
         let fetchRequest: NSFetchRequest<CDAssignment> = CDAssignment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "isCompleted == NO")
+
         let pendingCount = (try? context.count(for: fetchRequest)) ?? 0
         guard pendingCount == 0 else { return }
 
-        // Clear old completed assignments before re-seeding
         let allRequest: NSFetchRequest<CDAssignment> = CDAssignment.fetchRequest()
         if let old = try? context.fetch(allRequest) {
             old.forEach { context.delete($0) }
@@ -414,7 +462,7 @@ class DataPersistenceManager: ObservableObject {
             ("Psychology Research Paper", "Introduction to Psychology", "pencil", 7),
             ("Art Movement Presentation", "Modern Art History", "book.fill", 10),
             ("Business Case Study", "Business Strategy", "doc.fill", 12),
-            ("Quantum Mechanics Quiz", "Quantum Physics 101", "function", 14),
+            ("Quantum Mechanics Quiz", "Quantum Physics 101", "function", 14)
         ]
 
         for (title, course, icon, daysFromNow) in defaults {
@@ -446,6 +494,7 @@ class DataPersistenceManager: ObservableObject {
     }
 
     func loadAllData() {
+        loadCurrentUser()
         loadAllCourseProgress()
         loadAllLessonProgress()
         loadAllAssignments()
@@ -458,29 +507,43 @@ class DataPersistenceManager: ObservableObject {
 
         if let results = try? context.fetch(fetchRequest) {
             appData.courseProgress = results.map { mapCourseProgress($0) }
+        } else {
+            appData.courseProgress = []
         }
     }
 
     private func loadAllLessonProgress() {
         let fetchRequest: NSFetchRequest<CDLessonProgress> = CDLessonProgress.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "lessonName", ascending: true)]
 
         if let results = try? context.fetch(fetchRequest) {
             appData.lessonProgress = results.map { mapLessonProgress($0) }
+        } else {
+            appData.lessonProgress = []
         }
     }
 
     func clearAllData() {
-        let entities = ["CDUserProfile", "CDCourseProgress", "CDLessonProgress", "CDUserPreferences", "CDAssignment"]
+        let entities = [
+            "CDUserProfile",
+            "CDCourseProgress",
+            "CDLessonProgress",
+            "CDUserPreferences",
+            "CDAssignment"
+        ]
+
         for entityName in entities {
             let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: entityName)
             if let results = try? context.fetch(fetchRequest) {
                 results.forEach { context.delete($0) }
             }
         }
+
         coreData.save()
 
         appData = AppData()
         currentUser = nil
+        assignments = []
     }
 
     func exportAppData() -> String? {
@@ -500,7 +563,9 @@ class DataPersistenceManager: ObservableObject {
         let totalEnrolled = appData.courseProgress.count
         let totalCompleted = appData.courseProgress.filter { $0.completionPercentage >= 100.0 }.count
         let totalLessons = appData.lessonProgress.filter { $0.isCompleted }.count
-        let avgProgress = totalEnrolled > 0 ? appData.courseProgress.map { $0.completionPercentage }.reduce(0, +) / Double(totalEnrolled) : 0
+        let avgProgress = totalEnrolled > 0
+            ? appData.courseProgress.map { $0.completionPercentage }.reduce(0, +) / Double(totalEnrolled)
+            : 0
 
         return (totalEnrolled, totalCompleted, totalLessons, avgProgress)
     }

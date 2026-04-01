@@ -4,10 +4,14 @@ struct CreateAccountView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var isLoggedIn: Bool
 
+    @State private var firstName: String = ""
+    @State private var lastName: String = ""
+    @State private var dob: Date = Date()
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
 
+    @State private var showNameError: Bool = false
     @State private var showEmailError: Bool = false
     @State private var showPasswordError: Bool = false
 
@@ -26,8 +30,16 @@ struct CreateAccountView: View {
         !password.isEmpty && password == confirmPassword
     }
 
+    private var namesValid: Bool {
+        !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     private var canCreate: Bool {
-        isValidEmail && passwordValid && passwordsMatch
+        namesValid &&
+        isValidEmail &&
+        passwordValid &&
+        passwordsMatch
     }
 
     var body: some View {
@@ -59,7 +71,10 @@ struct CreateAccountView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(RoundedRectangle(cornerRadius: 14).fill(Color.blue.opacity(0.10)))
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.blue.opacity(0.10))
+                    )
 
                     Text("Create Student\nAccount")
                         .font(.system(size: 34, weight: .heavy, design: .rounded))
@@ -74,6 +89,77 @@ struct CreateAccountView: View {
                 .padding(.top, 4)
 
                 VStack(spacing: 14) {
+                    // First Name
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("First Name")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.black.opacity(0.65))
+
+                        TextField("John", text: $firstName)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.white)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(showNameError && firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.red : Color.black.opacity(0.08), lineWidth: showNameError && firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 2 : 1)
+                                    )
+                            )
+                    }
+
+                    // Last Name
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Last Name")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.black.opacity(0.65))
+
+                        TextField("Smith", text: $lastName)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.white)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(showNameError && lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.red : Color.black.opacity(0.08), lineWidth: showNameError && lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 2 : 1)
+                                    )
+                            )
+
+                        if showNameError {
+                            Text("Please enter your first and last name.")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+                    }
+
+                    // DOB
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Date of Birth")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.black.opacity(0.65))
+
+                        DatePicker(
+                            "",
+                            selection: $dob,
+                            in: ...Date(),
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(.compact)
+                        .labelsHidden()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.white)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                                )
+                        )
+                    }
+
                     // Email
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Email Address")
@@ -83,6 +169,7 @@ struct CreateAccountView: View {
                         HStack {
                             Image(systemName: "at")
                                 .foregroundStyle(.black.opacity(0.45))
+
                             TextField("john.smith@email.com", text: $email)
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled(true)
@@ -105,7 +192,7 @@ struct CreateAccountView: View {
                         )
 
                         if showEmailError {
-                            Text("Please enter a valid email address).")
+                            Text("Please enter a valid email address.")
                                 .font(.caption)
                                 .foregroundStyle(.red)
                         }
@@ -118,7 +205,7 @@ struct CreateAccountView: View {
                             .foregroundStyle(.black.opacity(0.65))
 
                         SecureField("Min. 8 characters", text: $password)
-                            .textContentType(.none)
+                            .textContentType(.newPassword)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 14)
                             .background(
@@ -131,14 +218,14 @@ struct CreateAccountView: View {
                             )
                     }
 
-                    // Confirm password
+                    // Confirm Password
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Confirm Password")
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(.black.opacity(0.65))
 
                         SecureField("Repeat password", text: $confirmPassword)
-                            .textContentType(.none)
+                            .textContentType(.newPassword)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 14)
                             .background(
@@ -157,9 +244,9 @@ struct CreateAccountView: View {
                         }
                     }
 
-                    // Create Account button (navigates to Verify screen)
+                    // Create Account
                     Button {
-                        // UI-only validation
+                        showNameError = !namesValid
                         showEmailError = !isValidEmail
                         showPasswordError = !(passwordValid && passwordsMatch)
 
@@ -187,6 +274,7 @@ struct CreateAccountView: View {
                     HStack(spacing: 6) {
                         Text("Already part of the community?")
                             .foregroundStyle(.black.opacity(0.55))
+
                         NavigationLink {
                             SignInView(isLoggedIn: $isLoggedIn)
                                 .navigationBarHidden(true)
@@ -203,13 +291,25 @@ struct CreateAccountView: View {
 
                 Spacer()
 
-                // Hidden navigation trigger
                 NavigationLink("", isActive: $goToVerify) {
-                    VerifyEmailView(isLoggedIn: $isLoggedIn, email: email)
-                        .navigationBarHidden(true)
+                    VerifyEmailView(
+                        isLoggedIn: $isLoggedIn,
+                        email: email,
+                        firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines),
+                        lastName: lastName.trimmingCharacters(in: .whitespacesAndNewlines),
+                        dob: dob,
+                        password: password
+                    )
+                    .navigationBarHidden(true)
                 }
                 .hidden()
             }
+        }
+        .onChange(of: firstName) {
+            if showNameError { showNameError = false }
+        }
+        .onChange(of: lastName) {
+            if showNameError { showNameError = false }
         }
         .onChange(of: email) {
             if showEmailError { showEmailError = false }
