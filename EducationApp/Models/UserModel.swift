@@ -109,6 +109,7 @@ struct Course: Identifiable, Codable {
     var totalHours: String
     var objectives: [String]
     var modules: [CourseModule]
+    var imageName: String
 }
 
 struct CourseModule: Identifiable, Codable {
@@ -139,7 +140,8 @@ struct CourseStore {
                 CourseModule(id: "qp_mod_1", title: "1. Wave-Particle Duality", duration: "15 mins"),
                 CourseModule(id: "qp_mod_2", title: "2. Quantum States", duration: "20 mins"),
                 CourseModule(id: "qp_mod_3", title: "3. Schrödinger's Equation", duration: "18 mins")
-            ]
+            ],
+            imageName: "quantum_physics"
         ),
         Course(
             id: "course_modern_art_history",
@@ -161,7 +163,8 @@ struct CourseStore {
                 CourseModule(id: "art_mod_1", title: "1. Impressionism Origins", duration: "12 mins"),
                 CourseModule(id: "art_mod_2", title: "2. Abstract Expressionism", duration: "14 mins"),
                 CourseModule(id: "art_mod_3", title: "3. Pop Art & Beyond", duration: "16 mins")
-            ]
+            ],
+            imageName: "modern_art_history"
         ),
         Course(
             id: "course_algorithm_design",
@@ -183,7 +186,8 @@ struct CourseStore {
                 CourseModule(id: "alg_mod_1", title: "1. Big-O Notation", duration: "10 mins"),
                 CourseModule(id: "alg_mod_2", title: "2. Sorting Algorithms", duration: "22 mins"),
                 CourseModule(id: "alg_mod_3", title: "3. Dynamic Programming", duration: "25 mins")
-            ]
+            ],
+            imageName: "algorithms"
         ),
         Course(
             id: "course_business_strategy",
@@ -205,7 +209,8 @@ struct CourseStore {
                 CourseModule(id: "biz_mod_1", title: "1. Competitive Analysis", duration: "14 mins"),
                 CourseModule(id: "biz_mod_2", title: "2. Market Positioning", duration: "18 mins"),
                 CourseModule(id: "biz_mod_3", title: "3. Growth Strategies", duration: "20 mins")
-            ]
+            ],
+            imageName: "business_strategy"
         ),
         Course(
             id: "course_intro_psychology",
@@ -227,7 +232,8 @@ struct CourseStore {
                 CourseModule(id: "psy_mod_1", title: "1. Foundations of Behavior", duration: "12 mins"),
                 CourseModule(id: "psy_mod_2", title: "2. Cognitive Processes", duration: "15 mins"),
                 CourseModule(id: "psy_mod_3", title: "3. Social Psychology", duration: "15 mins")
-            ]
+            ],
+            imageName: "psychology"
         )
     ]
 }
