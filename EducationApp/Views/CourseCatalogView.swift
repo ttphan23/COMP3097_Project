@@ -146,7 +146,8 @@ struct CourseCatalogView: View {
                                             )
                                             persistenceManager.saveCourseProgress(progress)
                                             enrolledCourses.insert(courseId)
-                                        }
+                                        },
+                                        imageName: course.imageName
                                     )
                                 }
                             }
@@ -224,24 +225,24 @@ struct CourseCard: View {
     let studentCount: String
     let isEnrolled: Bool
     let onEnroll: (String) -> Void
+    let imageName: String
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.gray.opacity(0.1))
-
-                Image(systemName: "book.circle.fill")
-                    .font(.system(size: 100))
-                    .foregroundStyle(categoryColor.opacity(0.2))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                    .offset(x: 20, y: 20)
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 120)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
 
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.black.opacity(0.2), Color.clear]),
+                    gradient: Gradient(colors: [Color.black.opacity(0.22), Color.clear]),
                     startPoint: .bottom,
                     endPoint: .top
                 )
+                .frame(height: 120)
 
                 HStack(spacing: 6) {
                     Circle()
@@ -259,61 +260,62 @@ struct CourseCard: View {
                 .cornerRadius(12)
                 .padding(12)
             }
-            .frame(height: 176)
+            .frame(height: 120)
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 24,
+                    topTrailingRadius: 24
+                )
+            )
 
-            VStack(alignment: .leading, spacing: 12) {
-                VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(title)
-                        .font(.system(size: 18, weight: .bold))
+                        .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(.black.opacity(0.9))
                         .lineLimit(2)
 
-                    HStack(spacing: 16) {
+                    HStack(spacing: 14) {
                         HStack(spacing: 6) {
                             Image(systemName: "clock.fill")
-                                .font(.system(size: 14))
+                                .font(.system(size: 13))
                                 .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
 
                             Text(duration)
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.gray.opacity(0.65))
                         }
 
                         HStack(spacing: 6) {
                             Image(systemName: "bolt.fill")
-                                .font(.system(size: 14))
+                                .font(.system(size: 13))
                                 .foregroundStyle(difficultyColor)
 
                             Text(difficulty)
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.gray.opacity(0.65))
                         }
                     }
                 }
 
                 HStack(spacing: 12) {
-                    // Student Avatars
                     HStack(spacing: -8) {
                         Circle()
                             .fill(Color.gray.opacity(0.3))
-                            .frame(width: 32, height: 32)
+                            .frame(width: 30, height: 30)
                             .overlay(
-                                Circle()
-                                    .stroke(Color.white, lineWidth: 2)
+                                Circle().stroke(Color.white, lineWidth: 2)
                             )
 
-                        VStack {
-                            Text("+\(studentCount)")
-                                .font(.system(size: 9, weight: .bold))
-                                .foregroundStyle(.gray.opacity(0.7))
-                        }
-                        .frame(width: 32, height: 32)
-                        .background(Color.gray.opacity(0.15))
-                        .cornerRadius(16)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.white, lineWidth: 2)
-                        )
+                        Text("+\(studentCount)")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.gray.opacity(0.7))
+                            .frame(width: 30, height: 30)
+                            .background(Color.gray.opacity(0.15))
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle().stroke(Color.white, lineWidth: 2)
+                            )
                     }
 
                     Spacer()
@@ -324,31 +326,28 @@ struct CourseCard: View {
                         }
                     }) {
                         Text(isEnrolled ? LocalizationManager.shared.localized("Enrolled") : LocalizationManager.shared.localized("Enroll Now"))
-                            .font(.system(size: 13, weight: .bold))
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(isEnrolled ? .black.opacity(0.9) : .white)
-                            .frame(minWidth: 100)
+                            .padding(.horizontal, 14)
                             .padding(.vertical, 10)
-                            .padding(.horizontal, 16)
                             .background(
                                 isEnrolled
-                                    ? RoundedRectangle(cornerRadius: 16).fill(Color.gray.opacity(0.1))
-                                    : RoundedRectangle(cornerRadius: 16).fill(Color(red: 0.231, green: 0.51, blue: 0.96))
+                                ? RoundedRectangle(cornerRadius: 14).fill(Color.gray.opacity(0.1))
+                                : RoundedRectangle(cornerRadius: 14).fill(Color(red: 0.231, green: 0.51, blue: 0.96))
                             )
-                            .shadow(color: isEnrolled ? Color.clear : Color(red: 0.231, green: 0.51, blue: 0.96).opacity(0.2), radius: 8, x: 0, y: 2)
                     }
                     .disabled(isEnrolled)
                 }
             }
-            .padding(16)
+            .padding(14)
         }
         .background(Color.white)
-        .cornerRadius(24)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(
             RoundedRectangle(cornerRadius: 24)
                 .stroke(Color.gray.opacity(0.1), lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-        .scaleEffect(0.98, anchor: .center)
     }
 }
 

@@ -79,22 +79,25 @@ struct CourseDetailsView: View {
                     VStack(spacing: 0) {
                         // Hero Image Section
                         ZStack(alignment: .bottomLeading) {
-                            Image(systemName: "book.circle.fill")
-                                .font(.system(size: 200))
-                                .foregroundStyle(colorForCategory(course.category).opacity(0.1))
-                                .frame(maxWidth: .infinity, alignment: .trailing)
+                            Image(course.imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 200)
+                                .background(Color.black.opacity(0.06))
 
                             LinearGradient(
                                 gradient: Gradient(colors: [
-                                    Color.black.opacity(0.8),
-                                    Color.black.opacity(0.2),
+                                    Color.black.opacity(0.7),
+                                    Color.black.opacity(0.22),
                                     Color.clear
                                 ]),
                                 startPoint: .bottom,
                                 endPoint: .top
                             )
+                            .frame(height: 200)
 
-                            VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 10) {
                                 HStack(spacing: 8) {
                                     Image(systemName: "checkmark.seal.fill")
                                         .font(.system(size: 10))
@@ -111,16 +114,17 @@ struct CourseDetailsView: View {
                                 .cornerRadius(12)
 
                                 Text(course.title)
-                                    .font(.system(size: 28, weight: .bold, design: .default))
+                                    .font(.system(size: 24, weight: .bold))
                                     .foregroundStyle(.white)
                                     .lineLimit(3)
                             }
-                            .padding(20)
+                            .padding(18)
                         }
-                        .frame(height: 280)
-                        .background(colorForCategory(course.category).opacity(0.1))
-                        .cornerRadius(32)
-                        .padding(20)
+                        .frame(height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 28))
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                        .padding(.bottom, 12)
 
                         // Stats Section
                         HStack(spacing: 0) {
@@ -173,8 +177,8 @@ struct CourseDetailsView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .trailing)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
                         .background(Color.blue.opacity(0.03))
                         .overlay(
                             VStack {
@@ -215,7 +219,7 @@ struct CourseDetailsView: View {
 
                             Spacer()
                         }
-                        .padding(16)
+                        .padding(14)
                         .background(Color.gray.opacity(0.03))
                         .cornerRadius(20)
                         .padding(.horizontal, 20)

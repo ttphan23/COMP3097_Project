@@ -224,18 +224,26 @@ struct HomeStudentDashboardView: View {
                                     
                                     VStack(spacing: 0) {
                                         ZStack(alignment: .topLeading) {
-                                            Image(systemName: "book.circle.fill")
-                                                .font(.system(size: 120))
-                                                .foregroundStyle(catColor.opacity(0.15))
-                                                .frame(maxWidth: .infinity, maxHeight: 140, alignment: .bottomTrailing)
-                                                .offset(x: 20, y: -20)
-                                            
+                                            Image(recent.course.imageName)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(height: 120)
+                                                .frame(maxWidth: .infinity)
+                                                .clipped()
+
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color.black.opacity(0.22), Color.clear]),
+                                                startPoint: .bottom,
+                                                endPoint: .top
+                                            )
+                                            .frame(height: 120)
+
                                             VStack(alignment: .leading, spacing: 8) {
                                                 HStack(spacing: 6) {
-                                                    Image(systemName: "book.fill")
-                                                        .font(.system(size: 11))
-                                                        .foregroundStyle(catColor)
-                                                    
+                                                    Circle()
+                                                        .fill(catColor)
+                                                        .frame(width: 6, height: 6)
+
                                                     Text(recent.progress.category.uppercased())
                                                         .font(.system(size: 9, weight: .bold))
                                                         .tracking(0.5)
@@ -243,13 +251,18 @@ struct HomeStudentDashboardView: View {
                                                 }
                                                 .padding(.horizontal, 10)
                                                 .padding(.vertical, 4)
-                                                .background(Color.white.opacity(0.85))
+                                                .background(Color.white.opacity(0.88))
                                                 .cornerRadius(12)
                                             }
                                             .padding(12)
                                         }
-                                        .frame(height: 140)
-                                        .background(catColor.opacity(0.08))
+                                        .frame(height: 120)
+                                        .clipShape(
+                                            UnevenRoundedRectangle(
+                                                topLeadingRadius: 16,
+                                                topTrailingRadius: 16
+                                            )
+                                        )
                                         
                                         VStack(alignment: .leading, spacing: 12) {
                                             VStack(alignment: .leading, spacing: 4) {
