@@ -136,9 +136,10 @@ struct VerifyEmailView: View {
                             university: university,
                             profileImageURL: nil,
                             createdDate: Date(),
+                            coursesEnrolled: [],
                             coursesCompleted: 0,
                             streakDays: 0,
-                            lastActiveDate: Date()
+                            lastActiveDate: nil
                         )
 
                         persistenceManager.saveCurrentUser(user)

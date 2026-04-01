@@ -390,6 +390,39 @@ func colorForDifficulty(_ difficulty: String) -> Color {
     }
 }
 
+struct NotificationsSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                Image(systemName: "bell.badge")
+                    .font(.system(size: 40))
+                    .foregroundStyle(Color.blue)
+
+                Text("Notifications")
+                    .font(.system(size: 24, weight: .bold))
+
+                Text("No new notifications right now.")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.gray)
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Notifications")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
 #Preview {
     CourseCatalogView()
 }

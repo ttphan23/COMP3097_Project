@@ -77,10 +77,10 @@ class DataPersistenceManager: ObservableObject {
     func updateUserProfile(firstName: String, lastName: String, email: String, password: String) {
         guard var user = currentUser else { return }
 
-        user.firstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
-        user.lastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
-        user.name = "\(user.firstName) \(user.lastName)".trimmingCharacters(in: .whitespacesAndNewlines)
-        user.email = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        user.firstName = firstName
+        user.lastName = lastName
+        user.name = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
+        user.email = email
 
         if !password.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             user.password = password
@@ -88,33 +88,52 @@ class DataPersistenceManager: ObservableObject {
 
         saveCurrentUser(user)
     }
-    
-    func getSavedUser() -> UserProfile? {
-        let fetchRequest: NSFetchRequest<CDUserProfile> = CDUserProfile.fetchRequest()
 
-        guard let cdUser = try? context.fetch(fetchRequest).first else { return nil }
-
-        return UserProfile(
-            id: cdUser.id ?? UUID().uuidString,
-            name: cdUser.name ?? "",
-            firstName: cdUser.firstName ?? "",
-            lastName: cdUser.lastName ?? "",
-            dob: cdUser.dob ?? Date(),
-            email: cdUser.email ?? "",
-            password: cdUser.password ?? "",
-            university: cdUser.university ?? "",
-            profileImageURL: cdUser.profileImageURL,
-            createdDate: cdUser.createdDate ?? Date(),
-            coursesEnrolled: [],
-            coursesCompleted: Int(cdUser.coursesCompleted),
-            streakDays: Int(cdUser.streakDays),
-            lastActiveDate: cdUser.lastActiveDate
-        )
+    func deleteCurrentUser() {
+        currentUser = nil
+        appData = AppData()
+        assignments = []
+        clearAllData()
     }
-
+    
     func signOutUser() {
         currentUser = nil
         appData.user = nil
+    }
+
+    // MARK: - Streak Tracking
+
+    func updateUserStreak() {
+        guard var user = currentUser else { return }
+
+        let calendar = Calendar.current
+        let today = Date()
+
+        if let lastActive = user.lastActiveDate {
+            if calendar.isDate(lastActive, inSameDayAs: today) {
+                return
+            }
+
+            if let yesterday = calendar.date(byAdding: .day, value: -1, to: today),
+               calendar.isDate(lastActive, inSameDayAs: yesterday) {
+                user.streakDays += 1
+            } else {
+                user.streakDays = 1
+            }
+        } else {
+            user.streakDays = 1
+        }
+
+        user.lastActiveDate = today
+        saveCurrentUser(user)
+    }
+
+    func getCurrentStreak() -> Int {
+        currentUser?.streakDays ?? 0
+    }
+
+    func getLastActiveDate() -> Date? {
+        currentUser?.lastActiveDate
     }
 
     // MARK: - Preferences Management
@@ -338,8 +357,11 @@ class DataPersistenceManager: ObservableObject {
             cdProgress.isCompleted = true
             cdProgress.completionDate = Date()
             cdProgress.watchedDuration = cdProgress.totalDuration
+
             coreData.save()
             loadAllLessonProgress()
+
+            updateUserStreak()
         }
     }
 

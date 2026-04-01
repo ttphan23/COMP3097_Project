@@ -42,7 +42,13 @@ struct LessonView: View {
 
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 0) {
-                        VideoPlayerSection(isPlaying: $isPlaying, currentTime: currentTime, totalTimeString: totalTimeString, timeString: timeString, completionPercentage: completionPercentage)
+                        VideoPlayerSection(
+                            isPlaying: $isPlaying,
+                            currentTime: currentTime,
+                            totalTimeString: totalTimeString,
+                            timeString: timeString,
+                            completionPercentage: completionPercentage
+                        )
 
                         LessonTitleSection(lessonName: lessonName)
 
@@ -50,12 +56,21 @@ struct LessonView: View {
 
                         StudyNotesSection(studyNotes: $studyNotes)
 
-                        MarkCompleteButton(lessonCompleted: $lessonCompleted, persistenceManager: persistenceManager, lessonId: lessonId, courseId: courseId, studyNotes: studyNotes, dismiss: dismiss)
+                        MarkCompleteButton(
+                            lessonCompleted: $lessonCompleted,
+                            persistenceManager: persistenceManager,
+                            lessonId: lessonId,
+                            courseId: courseId,
+                            studyNotes: studyNotes,
+                            dismiss: dismiss
+                        )
                     }
                 }
             }
         }
         .onAppear {
+            persistenceManager.updateUserStreak()
+
             if let existing = persistenceManager.getLessonProgress(for: lessonId) {
                 lessonCompleted = existing.isCompleted
                 if !existing.notes.isEmpty {
@@ -63,7 +78,6 @@ struct LessonView: View {
                 }
                 currentTime = existing.watchedDuration
             } else {
-                // Create initial lesson progress with courseId
                 let progress = LessonProgress(
                     lessonId: lessonId,
                     courseId: courseId,
@@ -73,15 +87,15 @@ struct LessonView: View {
                 persistenceManager.saveLessonProgress(progress)
             }
         }
-        .onChange(of: currentTime) {
+        .onChange(of: currentTime) { _, newValue in
             persistenceManager.updateLessonProgress(
                 lessonId: lessonId,
-                watchedDuration: currentTime,
+                watchedDuration: newValue,
                 totalDuration: totalDuration
             )
         }
-        .onChange(of: studyNotes) {
-            persistenceManager.saveLessonNotes(lessonId: lessonId, notes: studyNotes)
+        .onChange(of: studyNotes) { _, newValue in
+            persistenceManager.saveLessonNotes(lessonId: lessonId, notes: newValue)
         }
     }
 }

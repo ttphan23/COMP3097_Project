@@ -50,7 +50,6 @@ struct SignInView: View {
                 .padding(.top, 4)
 
                 VStack(spacing: 14) {
-                    // Email
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Email")
                             .font(.footnote.weight(.semibold))
@@ -72,7 +71,6 @@ struct SignInView: View {
                             )
                     }
 
-                    // Password
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Password")
                             .font(.footnote.weight(.semibold))
@@ -109,7 +107,9 @@ struct SignInView: View {
                             return
                         }
 
-                        guard let existingUser = persistenceManager.getSavedUser() else {
+                        persistenceManager.loadCurrentUser()
+
+                        guard let existingUser = persistenceManager.currentUser else {
                             errorMessage = "No account found. Please create an account first."
                             showError = true
                             return
@@ -131,10 +131,6 @@ struct SignInView: View {
                         }
 
                         showError = false
-                        
-                        persistenceManager.currentUser = existingUser
-                        persistenceManager.appData.user = existingUser
-                        
                         isLoggedIn = true
                     } label: {
                         Text("Sign In")
@@ -142,7 +138,10 @@ struct SignInView: View {
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
-                            .background(RoundedRectangle(cornerRadius: 18).fill(Color.blue))
+                            .background(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .fill(Color.blue)
+                            )
                     }
                     .padding(.top, 6)
                 }
@@ -151,10 +150,10 @@ struct SignInView: View {
                 Spacer()
             }
         }
-        .onChange(of: email) {
+        .onChange(of: email) { _, _ in
             if showError { showError = false }
         }
-        .onChange(of: password) {
+        .onChange(of: password) { _, _ in
             if showError { showError = false }
         }
     }

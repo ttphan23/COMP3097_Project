@@ -280,6 +280,7 @@ struct ProfileView: View {
             Button("Sign Out", role: .destructive) {
                 persistenceManager.signOutUser()
                 isLoggedIn = false
+                dismiss()
             }
         } message: {
             Text("Are you sure you want to sign out? You'll need to sign in again to access your courses.")
