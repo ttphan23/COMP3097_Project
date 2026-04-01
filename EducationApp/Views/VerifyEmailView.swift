@@ -3,9 +3,13 @@ import SwiftUI
 struct VerifyEmailView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var isLoggedIn: Bool
-    let email: String
 
-    @State private var goToWelcome = false
+    let email: String
+    let firstName: String
+    let lastName: String
+    let dob: Date
+    let password: String
+
     @StateObject private var persistenceManager = DataPersistenceManager.shared
     @State private var resendMessage: String = ""
 
@@ -29,6 +33,7 @@ struct VerifyEmailView: View {
                             .padding(10)
                             .background(Circle().fill(Color.white.opacity(0.08)))
                     }
+
                     Spacer()
 
                     HStack(spacing: 8) {
@@ -47,6 +52,7 @@ struct VerifyEmailView: View {
                     Circle()
                         .fill(Color.blue.opacity(0.12))
                         .frame(width: 140, height: 140)
+
                     Circle()
                         .stroke(style: StrokeStyle(lineWidth: 2, dash: [6, 6]))
                         .foregroundStyle(Color.blue.opacity(0.25))
@@ -71,6 +77,7 @@ struct VerifyEmailView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "envelope.fill")
                         .foregroundStyle(Color.blue.opacity(0.9))
+
                     Text(email.isEmpty ? "yourname@example.com" : email)
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(.white.opacity(0.85))
@@ -78,7 +85,10 @@ struct VerifyEmailView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
-                .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.08)))
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.white.opacity(0.08))
+                )
                 .padding(.top, 2)
 
                 VStack(spacing: 10) {
@@ -105,15 +115,32 @@ struct VerifyEmailView: View {
                     .padding(.horizontal, 24)
 
                     Button {
-                        let name = email.components(separatedBy: "@").first?.replacingOccurrences(of: ".", with: " ").capitalized ?? "Student"
                         let domain = email.components(separatedBy: "@").last ?? ""
-                        let university = domain.replacingOccurrences(of: ".edu", with: "").capitalized + " University"
+
+                        let university: String
+                        if domain.contains(".edu") {
+                            let cleaned = domain.replacingOccurrences(of: ".edu", with: "")
+                            university = cleaned.capitalized + " University"
+                        } else {
+                            university = "Verified Student"
+                        }
+
                         let user = UserProfile(
-                            name: name,
+                            id: UUID().uuidString,
+                            name: "\(firstName) \(lastName)",
+                            firstName: firstName,
+                            lastName: lastName,
+                            dob: dob,
                             email: email,
+                            password: password,
                             university: university,
-                            createdDate: Date()
+                            profileImageURL: nil,
+                            createdDate: Date(),
+                            coursesCompleted: 0,
+                            streakDays: 0,
+                            lastActiveDate: Date()
                         )
+
                         persistenceManager.saveCurrentUser(user)
                         isLoggedIn = true
                     } label: {
@@ -144,6 +171,13 @@ struct VerifyEmailView: View {
 
 #Preview {
     NavigationStack {
-        VerifyEmailView(isLoggedIn: .constant(false), email: "alex.smith@university.edu")
+        VerifyEmailView(
+            isLoggedIn: .constant(false),
+            email: "alex.smith@university.edu",
+            firstName: "Alex",
+            lastName: "Smith",
+            dob: Date(),
+            password: "Password123"
+        )
     }
 }

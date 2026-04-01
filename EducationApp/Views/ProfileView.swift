@@ -24,11 +24,19 @@ struct ProfileView: View {
                 Spacer()
 
                 Button(action: { showEditProfile = true }) {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
-                        .frame(width: 40, height: 40)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+                    HStack(spacing: 6) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Edit Profile")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(.secondarySystemBackground))
+                    )
                 }
             }
             .padding(.horizontal, 16)
@@ -55,13 +63,17 @@ struct ProfileView: View {
                                     )
                             )
 
-                        VStack(spacing: 4) {
-                            Text(persistenceManager.currentUser?.name ?? "Student")
+                        VStack(spacing: 6) {
+                            Text("\(persistenceManager.currentUser?.firstName ?? "") \(persistenceManager.currentUser?.lastName ?? "")")
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundStyle(Color(.label).opacity(0.9))
 
                             Text(persistenceManager.currentUser?.email ?? "student@university.edu")
                                 .font(.system(size: 13))
+                                .foregroundStyle(Color(.secondaryLabel))
+
+                            Text("DOB: \(formattedDOB)")
+                                .font(.system(size: 12))
                                 .foregroundStyle(Color(.secondaryLabel))
                         }
 
@@ -83,6 +95,26 @@ struct ProfileView: View {
                     .padding(20)
                     .background(Color(.secondarySystemBackground).opacity(0.5))
                     .cornerRadius(16)
+
+                    // Personal Information
+                    VStack(spacing: 12) {
+                        Text("Personal Information")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color(.label).opacity(0.9))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        profileInfoRow(label: "First Name", value: persistenceManager.currentUser?.firstName ?? "")
+                        profileInfoRow(label: "Last Name", value: persistenceManager.currentUser?.lastName ?? "")
+                        profileInfoRow(label: "Email", value: persistenceManager.currentUser?.email ?? "")
+                        profileInfoRow(label: "Date of Birth", value: formattedDOB)
+                    }
+                    .padding(16)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+                    )
 
                     // Stats
                     VStack(spacing: 12) {
@@ -130,7 +162,6 @@ struct ProfileView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.bottom, 12)
 
-                        // Notifications Toggle
                         HStack(spacing: 12) {
                             Image(systemName: "bell.fill")
                                 .font(.system(size: 14))
@@ -152,7 +183,6 @@ struct ProfileView: View {
                         Divider()
                             .padding(.vertical, 8)
 
-                        // Dark Mode Toggle
                         HStack(spacing: 12) {
                             Image(systemName: "moon.fill")
                                 .font(.system(size: 14))
@@ -174,7 +204,6 @@ struct ProfileView: View {
                         Divider()
                             .padding(.vertical, 8)
 
-                        // Language Picker
                         HStack(spacing: 12) {
                             Image(systemName: "globe")
                                 .font(.system(size: 14))
@@ -249,7 +278,7 @@ struct ProfileView: View {
                 showLogoutAlert = false
             }
             Button("Sign Out", role: .destructive) {
-                persistenceManager.deleteCurrentUser()
+                persistenceManager.signOutUser()
                 isLoggedIn = false
             }
         } message: {
@@ -267,6 +296,27 @@ struct ProfileView: View {
             stats = persistenceManager.getAppStatistics()
         }
     }
+
+    private var formattedDOB: String {
+        guard let dob = persistenceManager.currentUser?.dob else { return "Not set" }
+        return dob.formatted(date: .abbreviated, time: .omitted)
+    }
+
+    @ViewBuilder
+    private func profileInfoRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color(.label).opacity(0.85))
+
+            Spacer()
+
+            Text(value.isEmpty ? "Not set" : value)
+                .font(.system(size: 14))
+                .foregroundStyle(Color(.secondaryLabel))
+                .multilineTextAlignment(.trailing)
+        }
+    }
 }
 
 // MARK: - Edit Profile Sheet
@@ -275,19 +325,31 @@ struct EditProfileSheet: View {
     @Environment(\.dismiss) private var dismiss
     let persistenceManager: DataPersistenceManager
 
-    @State private var name: String = ""
+    @State private var firstName: String = ""
+    @State private var lastName: String = ""
     @State private var email: String = ""
-    @State private var university: String = ""
+    @State private var password: String = ""
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("Personal Information") {
-                    TextField("Full Name", text: $name)
+                    TextField("First Name", text: $firstName)
+                    TextField("Last Name", text: $lastName)
+
                     TextField("Email", text: $email)
                         .textInputAutocapitalization(.never)
                         .keyboardType(.emailAddress)
-                    TextField("University", text: $university)
+
+                    SecureField("Change Password", text: $password)
+                }
+
+                Section("Date of Birth") {
+                    Text(
+                        persistenceManager.currentUser?.dob.formatted(date: .abbreviated, time: .omitted)
+                        ?? "Not set"
+                    )
+                    .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Edit Profile")
@@ -298,17 +360,25 @@ struct EditProfileSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        guard !name.isEmpty, !email.isEmpty else { return }
-                        persistenceManager.updateUserProfile(name: name, email: email, university: university)
+                        guard !firstName.isEmpty, !lastName.isEmpty, !email.isEmpty, !password.isEmpty else { return }
+
+                        persistenceManager.updateUserProfile(
+                            firstName: firstName,
+                            lastName: lastName,
+                            email: email,
+                            password: password
+                        )
+
                         dismiss()
                     }
-                    .disabled(name.isEmpty || email.isEmpty)
+                    .disabled(firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty)
                 }
             }
             .onAppear {
-                name = persistenceManager.currentUser?.name ?? ""
+                firstName = persistenceManager.currentUser?.firstName ?? ""
+                lastName = persistenceManager.currentUser?.lastName ?? ""
                 email = persistenceManager.currentUser?.email ?? ""
-                university = persistenceManager.currentUser?.university ?? ""
+                password = persistenceManager.currentUser?.password ?? ""
             }
         }
     }
