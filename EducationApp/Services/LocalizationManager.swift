@@ -68,6 +68,42 @@ class LocalizationManager: ObservableObject {
         "Sign In": ["Spanish": "Iniciar sesión", "French": "Se connecter", "German": "Anmelden"],
         "Create Student Account": ["Spanish": "Crear cuenta de estudiante", "French": "Créer un compte étudiant", "German": "Studentenkonto erstellen"],
         "Create Account": ["Spanish": "Crear cuenta", "French": "Créer un compte", "German": "Konto erstellen"],
+
+        // Welcome Screen
+        "Master your courses": ["Spanish": "Domina tus cursos", "French": "Maîtrisez vos cours", "German": "Meistere deine Kurse"],
+        "with ease": ["Spanish": "con facilidad", "French": "avec facilité", "German": "mit Leichtigkeit"],
+        "The friendly learning companion\nbuilt just for university students.": ["Spanish": "El compañero de aprendizaje amigable\ncreado para estudiantes universitarios.", "French": "Le compagnon d'apprentissage convivial\nconçu pour les étudiants universitaires.", "German": "Der freundliche Lernbegleiter\nspeziell für Studierende."],
+
+        // Sign In Screen
+        "Use your email and password to continue.": ["Spanish": "Usa tu correo y contraseña para continuar.", "French": "Utilisez votre e-mail et mot de passe pour continuer.", "German": "Verwende deine E-Mail und dein Passwort, um fortzufahren."],
+        "Email": ["Spanish": "Correo electrónico", "French": "E-mail", "German": "E-Mail"],
+        "Password": ["Spanish": "Contraseña", "French": "Mot de passe", "German": "Passwort"],
+
+        // Create Account Screen
+        "STUDENT ACCESS ONLY": ["Spanish": "SOLO ACCESO ESTUDIANTIL", "French": "ACCÈS ÉTUDIANTS UNIQUEMENT", "German": "NUR FÜR STUDIERENDE"],
+        "Create Student\nAccount": ["Spanish": "Crear Cuenta\nEstudiantil", "French": "Créer un Compte\nÉtudiant", "German": "Studenten-\nKonto erstellen"],
+        "Join your peers! Create your account to start learning.": ["Spanish": "¡Únete a tus compañeros! Crea tu cuenta para empezar.", "French": "Rejoignez vos pairs ! Créez votre compte pour commencer.", "German": "Schließe dich deinen Kommilitonen an! Erstelle dein Konto."],
+        "First Name": ["Spanish": "Nombre", "French": "Prénom", "German": "Vorname"],
+        "Last Name": ["Spanish": "Apellido", "French": "Nom", "German": "Nachname"],
+        "Date of Birth": ["Spanish": "Fecha de nacimiento", "French": "Date de naissance", "German": "Geburtsdatum"],
+        "Email Address": ["Spanish": "Correo electrónico", "French": "Adresse e-mail", "German": "E-Mail-Adresse"],
+        "Choose Password": ["Spanish": "Elegir contraseña", "French": "Choisir un mot de passe", "German": "Passwort wählen"],
+        "Confirm Password": ["Spanish": "Confirmar contraseña", "French": "Confirmer le mot de passe", "German": "Passwort bestätigen"],
+        "Already part of the community?": ["Spanish": "¿Ya eres parte de la comunidad?", "French": "Déjà membre de la communauté ?", "German": "Bereits Teil der Community?"],
+        "Log In": ["Spanish": "Iniciar sesión", "French": "Se connecter", "German": "Anmelden"],
+
+        // Verify Email
+        "Verify Your Email": ["Spanish": "Verifica tu correo", "French": "Vérifiez votre e-mail", "German": "E-Mail bestätigen"],
+        "Verify & Continue": ["Spanish": "Verificar y continuar", "French": "Vérifier et continuer", "German": "Bestätigen und weiter"],
+        "Resend Code": ["Spanish": "Reenviar código", "French": "Renvoyer le code", "German": "Code erneut senden"],
+        "Didn't receive the code?": ["Spanish": "¿No recibiste el código?", "French": "Vous n'avez pas reçu le code ?", "German": "Code nicht erhalten?"],
+
+        // Quiz
+        "Quiz": ["Spanish": "Cuestionario", "French": "Quiz", "German": "Quiz"],
+        "Next": ["Spanish": "Siguiente", "French": "Suivant", "German": "Weiter"],
+        "Submit Quiz": ["Spanish": "Enviar cuestionario", "French": "Soumettre le quiz", "German": "Quiz abgeben"],
+        "Quiz Complete!": ["Spanish": "¡Cuestionario completado!", "French": "Quiz terminé !", "German": "Quiz abgeschlossen!"],
+        "Retake Quiz": ["Spanish": "Repetir cuestionario", "French": "Refaire le quiz", "German": "Quiz wiederholen"],
     ]
 
     func localized(_ key: String) -> String {

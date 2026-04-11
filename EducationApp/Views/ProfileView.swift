@@ -68,7 +68,7 @@ struct ProfileView: View {
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundStyle(Color(.label).opacity(0.9))
 
-                            Text(persistenceManager.currentUser?.email ?? "student@university.edu")
+                            Text(persistenceManager.currentUser?.email ?? "No email")
                                 .font(.system(size: 13))
                                 .foregroundStyle(Color(.secondaryLabel))
 

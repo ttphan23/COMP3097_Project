@@ -7,14 +7,14 @@ struct SavedCoursesView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(.systemBackground).ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(loc.localized("Saved Courses"))
                             .font(.system(size: 28, weight: .bold))
-                            .foregroundStyle(.black.opacity(0.9))
+                            .foregroundStyle(Color(.label).opacity(0.9))
 
                         Text(loc.localized("Your bookmarked learning materials"))
                             .font(.system(size: 13))
@@ -38,7 +38,7 @@ struct SavedCoursesView: View {
                                 VStack(spacing: 6) {
                                     Text(loc.localized("No Saved Courses Yet"))
                                         .font(.system(size: 18, weight: .bold))
-                                        .foregroundStyle(.black.opacity(0.85))
+                                        .foregroundStyle(Color(.label).opacity(0.85))
 
                                     Text(loc.localized("Bookmark courses to save them for later"))
                                         .font(.system(size: 13))
@@ -119,7 +119,7 @@ struct SavedCourseCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(courseProgress.courseName)
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(.black.opacity(0.9))
+                    .foregroundStyle(Color(.label).opacity(0.9))
                     .lineLimit(1)
 
                 HStack(spacing: 8) {

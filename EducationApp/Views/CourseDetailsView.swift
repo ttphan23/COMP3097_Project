@@ -24,7 +24,7 @@ struct CourseDetailsView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(.systemBackground).ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Sticky Navigation Bar
@@ -70,7 +70,7 @@ struct CourseDetailsView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Color.white.opacity(0.9))
+                .background(Color(.systemBackground).opacity(0.9))
                 .overlay(alignment: .bottom) {
                     Divider()
                 }
@@ -136,7 +136,7 @@ struct CourseDetailsView: View {
 
                                     Text(String(format: "%.1f", course.rating))
                                         .font(.system(size: 13, weight: .bold))
-                                        .foregroundStyle(.black.opacity(0.9))
+                                        .foregroundStyle(Color(.label).opacity(0.9))
 
                                     Text("(\(course.reviewCount) reviews)")
                                         .font(.system(size: 11))
@@ -156,7 +156,7 @@ struct CourseDetailsView: View {
 
                                     Text("\(course.studentCount) Students")
                                         .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(.black.opacity(0.85))
+                                        .foregroundStyle(Color(.label).opacity(0.85))
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -172,7 +172,7 @@ struct CourseDetailsView: View {
 
                                     Text("\(course.totalHours) Total")
                                         .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(.black.opacity(0.85))
+                                        .foregroundStyle(Color(.label).opacity(0.85))
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -210,7 +210,7 @@ struct CourseDetailsView: View {
 
                                 Text(course.instructor)
                                     .font(.system(size: 16, weight: .bold))
-                                    .foregroundStyle(.black.opacity(0.9))
+                                    .foregroundStyle(Color(.label).opacity(0.9))
 
                                 Text(course.instructorDepartment)
                                     .font(.system(size: 11))
@@ -234,7 +234,7 @@ struct CourseDetailsView: View {
 
                                 Text("Key Objectives")
                                     .font(.system(size: 18, weight: .bold, design: .default))
-                                    .foregroundStyle(.black.opacity(0.9))
+                                    .foregroundStyle(Color(.label).opacity(0.9))
                             }
 
                             VStack(alignment: .leading, spacing: 16) {
@@ -252,7 +252,7 @@ struct CourseDetailsView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Course Modules")
                                         .font(.system(size: 18, weight: .bold, design: .default))
-                                        .foregroundStyle(.black.opacity(0.9))
+                                        .foregroundStyle(Color(.label).opacity(0.9))
 
                                     Text("\(course.modules.count) Lessons")
                                         .font(.system(size: 11))
@@ -319,8 +319,58 @@ struct CourseDetailsView: View {
                                 }
                             }
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 140)
+                        // Quiz Section
+                        if !completedModuleIds.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack(spacing: 8) {
+                                    Circle()
+                                        .fill(Color.purple)
+                                        .frame(width: 8, height: 8)
+
+                                    Text("Course Quiz")
+                                        .font(.system(size: 18, weight: .bold))
+                                        .foregroundStyle(Color(.label).opacity(0.9))
+                                }
+
+                                NavigationLink(destination: QuizView(
+                                    courseName: course.title,
+                                    questions: CourseQuizStore.questions(for: course.id)
+                                )) {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "questionmark.circle.fill")
+                                            .font(.system(size: 22))
+                                            .foregroundStyle(.purple)
+
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Test Your Knowledge")
+                                                .font(.system(size: 14, weight: .bold))
+                                                .foregroundStyle(Color(.label).opacity(0.85))
+
+                                            Text("\(CourseQuizStore.questions(for: course.id).count) questions")
+                                                .font(.system(size: 11))
+                                                .foregroundStyle(.gray.opacity(0.5))
+                                        }
+
+                                        Spacer()
+
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(.gray.opacity(0.4))
+                                    }
+                                    .padding(14)
+                                    .background(Color.purple.opacity(0.06))
+                                    .cornerRadius(16)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(Color.purple.opacity(0.15), lineWidth: 1)
+                                    )
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 8)
+                        }
+
+                        Spacer(minLength: 140)
                     }
                 }
             }
@@ -354,17 +404,36 @@ struct CourseDetailsView: View {
                             .shadow(color: Color(red: 0.176, green: 0.357, blue: 0.94).opacity(0.4), radius: 12, x: 0, y: 6)
                         }
                     } else {
-                        HStack(spacing: 12) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 20))
-                            Text("Course Completed!")
-                                .font(.system(size: 16, weight: .heavy))
+                        VStack(spacing: 10) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 20))
+                                Text("Course Completed!")
+                                    .font(.system(size: 16, weight: .heavy))
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(Color.green)
+                            .cornerRadius(20)
+
+                            NavigationLink(destination: QuizView(
+                                courseName: course.title,
+                                questions: CourseQuizStore.questions(for: course.id)
+                            )) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "questionmark.circle.fill")
+                                        .font(.system(size: 16))
+                                    Text("Take Quiz")
+                                        .font(.system(size: 14, weight: .bold))
+                                }
+                                .foregroundStyle(Color(red: 0.176, green: 0.357, blue: 0.94))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(16)
+                            }
                         }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(Color.green)
-                        .cornerRadius(20)
                     }
 
                     HStack(spacing: 6) {
@@ -384,9 +453,9 @@ struct CourseDetailsView: View {
                 .background(
                     LinearGradient(
                         gradient: Gradient(colors: [
-                            Color.white.opacity(0.9),
-                            Color.white.opacity(0.95),
-                            Color.white
+                            Color(.systemBackground).opacity(0.9),
+                            Color(.systemBackground).opacity(0.95),
+                            Color(.systemBackground)
                         ]),
                         startPoint: .top,
                         endPoint: .bottom

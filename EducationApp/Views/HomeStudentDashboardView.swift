@@ -34,7 +34,7 @@ struct HomeStudentDashboardView: View {
     
     var body: some View {
         ZStack {
-            Color(red: 0.99, green: 0.99, blue: 0.976).ignoresSafeArea()
+            Color(.systemBackground).ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // Header
@@ -57,7 +57,7 @@ struct HomeStudentDashboardView: View {
                         
                         Text(loc.localized("Home"))
                             .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundStyle(.black.opacity(0.9))
+                            .foregroundStyle(Color(.label).opacity(0.9))
                     }
                     
                     Spacer()
@@ -83,11 +83,11 @@ struct HomeStudentDashboardView: View {
                                 let firstName = persistenceManager.currentUser?.name.components(separatedBy: " ").first ?? "Student"
                                 Text("Hi, \(firstName)! 👋")
                                     .font(.system(size: 32, weight: .bold, design: .rounded))
-                                    .foregroundStyle(.black.opacity(0.9))
+                                    .foregroundStyle(Color(.label).opacity(0.9))
                                 
                                 Text(loc.localized("Ready for a super productive day?"))
                                     .font(.system(size: 16))
-                                    .foregroundStyle(.black.opacity(0.5))
+                                    .foregroundStyle(Color(.label).opacity(0.5))
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 18)
@@ -98,7 +98,7 @@ struct HomeStudentDashboardView: View {
                                     VStack(alignment: .leading, spacing: 6) {
                                         Text("Daily Streak")
                                             .font(.system(size: 18, weight: .bold, design: .rounded))
-                                            .foregroundStyle(.black.opacity(0.9))
+                                            .foregroundStyle(Color(.label).opacity(0.9))
                                         
                                         Text("\(currentStreak) day\(currentStreak == 1 ? "" : "s") in a row")
                                             .font(.system(size: 24, weight: .heavy, design: .rounded))
@@ -106,7 +106,7 @@ struct HomeStudentDashboardView: View {
                                         
                                         Text(lastActiveText)
                                             .font(.system(size: 13))
-                                            .foregroundStyle(.black.opacity(0.5))
+                                            .foregroundStyle(Color(.label).opacity(0.5))
                                     }
                                     
                                     Spacer()
@@ -124,10 +124,10 @@ struct HomeStudentDashboardView: View {
                                 
                                 Text(currentStreak == 0 ? "Complete a lesson today to start your streak." : "Keep learning daily to grow your streak.")
                                     .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(.black.opacity(0.55))
+                                    .foregroundStyle(Color(.label).opacity(0.55))
                             }
                             .padding(16)
-                            .background(Color.white)
+                            .background(Color(.secondarySystemBackground))
                             .cornerRadius(16)
                             .padding(.horizontal, 18)
                             .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 4)
@@ -141,11 +141,11 @@ struct HomeStudentDashboardView: View {
                                     VStack(alignment: .leading, spacing: 8) {
                                         Text(loc.localized("Your Week"))
                                             .font(.system(size: 18, weight: .bold, design: .rounded))
-                                            .foregroundStyle(.black.opacity(0.9))
+                                            .foregroundStyle(Color(.label).opacity(0.9))
                                         
                                         Text("\(progressPercent)% of your target reached")
                                             .font(.system(size: 13))
-                                            .foregroundStyle(.black.opacity(0.5))
+                                            .foregroundStyle(Color(.label).opacity(0.5))
                                         
                                         HStack(spacing: 8) {
                                             Image(systemName: progressPercent > 50 ? "party.popper.fill" : "flame.fill")
@@ -185,13 +185,13 @@ struct HomeStudentDashboardView: View {
                                         VStack(spacing: 2) {
                                             Text("\(progressPercent)%")
                                                 .font(.system(size: 16, weight: .bold, design: .rounded))
-                                                .foregroundStyle(.black.opacity(0.85))
+                                                .foregroundStyle(Color(.label).opacity(0.85))
                                         }
                                     }
                                     .frame(width: 100, height: 100)
                                 }
                                 .padding(16)
-                                .background(Color.white)
+                                .background(Color(.secondarySystemBackground))
                                 .cornerRadius(16)
                             }
                             .padding(.horizontal, 18)
@@ -202,7 +202,7 @@ struct HomeStudentDashboardView: View {
                                 HStack {
                                     Text("\(loc.localized("Keep Going!")) 🚀")
                                         .font(.system(size: 22, weight: .bold, design: .rounded))
-                                        .foregroundStyle(.black.opacity(0.9))
+                                        .foregroundStyle(Color(.label).opacity(0.9))
                                     
                                     Spacer()
                                     
@@ -268,11 +268,11 @@ struct HomeStudentDashboardView: View {
                                             VStack(alignment: .leading, spacing: 4) {
                                                 Text(recent.course.title)
                                                     .font(.system(size: 16, weight: .bold, design: .rounded))
-                                                    .foregroundStyle(.black.opacity(0.9))
+                                                    .foregroundStyle(Color(.label).opacity(0.9))
                                                 
                                                 Text("\(recent.progress.lessonsCompleted)/\(recent.progress.totalLessons) lessons completed")
                                                     .font(.system(size: 12))
-                                                    .foregroundStyle(.black.opacity(0.5))
+                                                    .foregroundStyle(Color(.label).opacity(0.5))
                                             }
                                             
                                             // Progress Bar
@@ -319,7 +319,7 @@ struct HomeStudentDashboardView: View {
                                             }
                                         }
                                         .padding(16)
-                                        .background(Color.white)
+                                        .background(Color(.secondarySystemBackground))
                                     }
                                     .cornerRadius(16)
                                     .padding(.horizontal, 18)
@@ -345,19 +345,56 @@ struct HomeStudentDashboardView: View {
                                     }
                                     .frame(maxWidth: .infinity)
                                     .padding(24)
-                                    .background(Color.white)
+                                    .background(Color(.secondarySystemBackground))
                                     .cornerRadius(16)
                                     .padding(.horizontal, 18)
                                     .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 4)
                                 }
                             }
                             
+                            // Progress Analytics Section
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Learning Analytics")
+                                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                                    .foregroundStyle(Color(.label).opacity(0.9))
+                                    .padding(.horizontal, 18)
+
+                                // Stats Row
+                                HStack(spacing: 12) {
+                                    DashboardStatCard(
+                                        icon: "book.closed.fill",
+                                        value: "\(stats.totalCoursesEnrolled)",
+                                        label: loc.localized("Courses Enrolled"),
+                                        color: Color(red: 0.231, green: 0.51, blue: 0.96)
+                                    )
+
+                                    DashboardStatCard(
+                                        icon: "checkmark.circle.fill",
+                                        value: "\(stats.totalCoursesCompleted)",
+                                        label: loc.localized("Completed"),
+                                        color: Color.green
+                                    )
+
+                                    DashboardStatCard(
+                                        icon: "play.circle.fill",
+                                        value: "\(stats.totalLessonsCompleted)",
+                                        label: loc.localized("Lessons Done"),
+                                        color: Color(red: 1, green: 0.49, blue: 0.37)
+                                    )
+                                }
+                                .padding(.horizontal, 18)
+
+                                // Weekly Progress Bar Chart
+                                WeeklyProgressChart(persistenceManager: persistenceManager)
+                                    .padding(.horizontal, 18)
+                            }
+
                             // Don't Forget Section - Dynamic Assignments
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
                                     Text("\(loc.localized("Don't Forget!")) ✏️")
                                         .font(.system(size: 22, weight: .bold, design: .rounded))
-                                        .foregroundStyle(.black.opacity(0.9))
+                                        .foregroundStyle(Color(.label).opacity(0.9))
                                     
                                     Spacer()
                                     
@@ -513,18 +550,18 @@ struct HomeStudentDashboardView: View {
                         .foregroundStyle(iconColor)
                 }
                 .frame(width: 48, height: 48)
-                .background(Color.white)
+                .background(Color(.secondarySystemBackground))
                 .cornerRadius(12)
                 .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 1)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(assignment.title)
                         .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundStyle(.black.opacity(0.85))
+                        .foregroundStyle(Color(.label).opacity(0.85))
                     
                     Text(assignment.courseName)
                         .font(.system(size: 11))
-                        .foregroundStyle(.black.opacity(0.5))
+                        .foregroundStyle(Color(.label).opacity(0.5))
                 }
                 
                 Spacer()
@@ -536,7 +573,7 @@ struct HomeStudentDashboardView: View {
                     
                     Text(dateString)
                         .font(.system(size: 9))
-                        .foregroundStyle(.black.opacity(0.35))
+                        .foregroundStyle(Color(.label).opacity(0.35))
                 }
             }
             .padding(12)
@@ -678,12 +715,12 @@ struct HomeStudentDashboardView: View {
         let icon: String
         let label: String
         let isActive: Bool
-        
+
         var body: some View {
             VStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 18))
-                
+
                 Text(label)
                     .font(.system(size: 8, weight: .bold))
                     .tracking(0.3)
@@ -691,5 +728,120 @@ struct HomeStudentDashboardView: View {
             .foregroundStyle(isActive ? Color(red: 1, green: 0.49, blue: 0.37) : .gray.opacity(0.4))
             .frame(maxWidth: .infinity)
         }
+    }
+}
+
+// MARK: - Stat Card
+
+struct DashboardStatCard: View {
+    let icon: String
+    let value: String
+    let label: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundStyle(color)
+
+            Text(value)
+                .font(.system(size: 20, weight: .heavy, design: .rounded))
+                .foregroundStyle(Color(.label).opacity(0.85))
+
+            Text(label)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.gray.opacity(0.6))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+    }
+}
+
+// MARK: - Weekly Progress Chart
+
+struct WeeklyProgressChart: View {
+    let persistenceManager: DataPersistenceManager
+
+    var weeklyData: [(day: String, count: Int)] {
+        let calendar = Calendar.current
+        let today = Date()
+        let dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+        var data: [(String, Int)] = []
+        let allLessons = persistenceManager.appData.lessonProgress
+
+        for i in (0..<7).reversed() {
+            guard let date = calendar.date(byAdding: .day, value: -i, to: today) else {
+                data.append((dayLabels[0], 0))
+                continue
+            }
+
+            let weekday = calendar.component(.weekday, from: date)
+            let dayIndex = (weekday + 5) % 7 // Convert to Mon=0
+            let label = dayLabels[dayIndex]
+
+            let count = allLessons.filter { lesson in
+                guard let completionDate = lesson.completionDate else { return false }
+                return calendar.isDate(completionDate, inSameDayAs: date)
+            }.count
+
+            data.append((label, count))
+        }
+
+        return data
+    }
+
+    var maxCount: Int {
+        max(weeklyData.map { $0.count }.max() ?? 1, 1)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("This Week's Activity")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(Color(.label).opacity(0.7))
+
+            HStack(alignment: .bottom, spacing: 8) {
+                ForEach(Array(weeklyData.enumerated()), id: \.offset) { _, item in
+                    VStack(spacing: 6) {
+                        Text("\(item.count)")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.gray.opacity(0.5))
+
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                item.count > 0
+                                    ? LinearGradient(
+                                        colors: [Color(red: 1, green: 0.49, blue: 0.37), Color(red: 1, green: 0.73, blue: 0.48)],
+                                        startPoint: .bottom,
+                                        endPoint: .top
+                                    )
+                                    : LinearGradient(
+                                        colors: [Color.gray.opacity(0.15), Color.gray.opacity(0.1)],
+                                        startPoint: .bottom,
+                                        endPoint: .top
+                                    )
+                            )
+                            .frame(height: max(CGFloat(item.count) / CGFloat(maxCount) * 80, 8))
+
+                        Text(item.day)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.gray.opacity(0.5))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(height: 120)
+        }
+        .padding(16)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
 }

@@ -18,8 +18,7 @@ struct CreateAccountView: View {
     @State private var goToVerify: Bool = false
 
     private var isValidEmail: Bool {
-        let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.contains("@")
+        email.trimmingCharacters(in: .whitespacesAndNewlines).contains("@")
     }
 
     private var passwordValid: Bool {
@@ -36,10 +35,7 @@ struct CreateAccountView: View {
     }
 
     private var canCreate: Bool {
-        namesValid &&
-        isValidEmail &&
-        passwordValid &&
-        passwordsMatch
+        namesValid && isValidEmail && passwordValid && passwordsMatch
     }
 
     var body: some View {
@@ -48,262 +44,22 @@ struct CreateAccountView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 16) {
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(.black.opacity(0.85))
-                            .padding(10)
-                            .background(Circle().fill(Color.black.opacity(0.06)))
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 18)
-                .padding(.top, 6)
-
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "graduationcap.fill")
-                            .foregroundStyle(Color.blue.opacity(0.85))
-                        Text("STUDENT ACCESS ONLY")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(Color.blue.opacity(0.85))
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.blue.opacity(0.10))
-                    )
-
-                    Text("Create Student\nAccount")
-                        .font(.system(size: 34, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.black.opacity(0.88))
-
-                    Text("Join your peers! Create your account to start learning.")
-                        .font(.subheadline)
-                        .foregroundStyle(.black.opacity(0.55))
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 22)
-                .padding(.top, 4)
-
-                VStack(spacing: 14) {
-                    // First Name
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("First Name")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.black.opacity(0.65))
-
-                        TextField("John", text: $firstName)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 14)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(showNameError && firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.red : Color.black.opacity(0.08), lineWidth: showNameError && firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 2 : 1)
-                                    )
-                            )
-                    }
-
-                    // Last Name
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Last Name")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.black.opacity(0.65))
-
-                        TextField("Smith", text: $lastName)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 14)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(showNameError && lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.red : Color.black.opacity(0.08), lineWidth: showNameError && lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 2 : 1)
-                                    )
-                            )
-
-                        if showNameError {
-                            Text("Please enter your first and last name.")
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                        }
-                    }
-
-                    // DOB
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Date of Birth")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.black.opacity(0.65))
-
-                        DatePicker(
-                            "",
-                            selection: $dob,
-                            in: ...Date(),
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.white)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(Color.black.opacity(0.08), lineWidth: 1)
-                                )
-                        )
-                    }
-
-                    // Email
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Email Address")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.black.opacity(0.65))
-
-                        HStack {
-                            Image(systemName: "at")
-                                .foregroundStyle(.black.opacity(0.45))
-
-                            TextField("john.smith@email.com", text: $email)
-                                .textInputAutocapitalization(.never)
-                                .autocorrectionDisabled(true)
-                                .keyboardType(.emailAddress)
-
-                            if showEmailError {
-                                Image(systemName: "exclamationmark.circle.fill")
-                                    .foregroundStyle(.red)
-                            }
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.white)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(showEmailError ? Color.red : Color.black.opacity(0.08), lineWidth: showEmailError ? 2 : 1)
-                                )
-                        )
-
-                        if showEmailError {
-                            Text("Please enter a valid email address.")
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                        }
-                    }
-
-                    // Password
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Choose Password")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.black.opacity(0.65))
-
-                        SecureField("Min. 8 characters", text: $password)
-                            .textContentType(.newPassword)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 14)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(showPasswordError ? Color.red : Color.black.opacity(0.08), lineWidth: showPasswordError ? 2 : 1)
-                                    )
-                            )
-                    }
-
-                    // Confirm Password
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Confirm Password")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.black.opacity(0.65))
-
-                        SecureField("Repeat password", text: $confirmPassword)
-                            .textContentType(.newPassword)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 14)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(showPasswordError ? Color.red : Color.black.opacity(0.08), lineWidth: showPasswordError ? 2 : 1)
-                                    )
-                            )
-
-                        if showPasswordError {
-                            Text("Password must be 8+ characters and match.")
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                        }
-                    }
-
-                    // Create Account
-                    Button {
-                        showNameError = !namesValid
-                        showEmailError = !isValidEmail
-                        showPasswordError = !(passwordValid && passwordsMatch)
-
-                        if canCreate {
-                            goToVerify = true
-                        }
-                    } label: {
-                        HStack {
-                            Text("Create Account")
-                                .font(.system(size: 16, weight: .bold, design: .rounded))
-                            Spacer()
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 14, weight: .bold))
-                        }
-                        .foregroundStyle(canCreate ? Color.white : Color.black.opacity(0.35))
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(canCreate ? Color.blue : Color.black.opacity(0.10))
-                        )
-                    }
-                    .padding(.top, 6)
-
-                    HStack(spacing: 6) {
-                        Text("Already part of the community?")
-                            .foregroundStyle(.black.opacity(0.55))
-
-                        NavigationLink {
-                            SignInView(isLoggedIn: $isLoggedIn)
-                                .navigationBarHidden(true)
-                        } label: {
-                            Text("Log In")
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.blue)
-                        }
-                    }
-                    .font(.footnote)
-                    .padding(.top, 6)
-                }
-                .padding(.horizontal, 22)
-
+                backButton
+                headerSection
+                formSection
                 Spacer()
-
-                NavigationLink("", isActive: $goToVerify) {
-                    VerifyEmailView(
-                        isLoggedIn: $isLoggedIn,
-                        email: email,
-                        firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines),
-                        lastName: lastName.trimmingCharacters(in: .whitespacesAndNewlines),
-                        dob: dob,
-                        password: password
-                    )
-                    .navigationBarHidden(true)
-                }
-                .hidden()
             }
+        }
+        .navigationDestination(isPresented: $goToVerify) {
+            VerifyEmailView(
+                isLoggedIn: $isLoggedIn,
+                email: email,
+                firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines),
+                lastName: lastName.trimmingCharacters(in: .whitespacesAndNewlines),
+                dob: dob,
+                password: password
+            )
+            .navigationBarHidden(true)
         }
         .onChange(of: firstName) {
             if showNameError { showNameError = false }
@@ -320,6 +76,289 @@ struct CreateAccountView: View {
         .onChange(of: confirmPassword) {
             if showPasswordError { showPasswordError = false }
         }
+    }
+
+    // MARK: - Back Button
+
+    private var backButton: some View {
+        HStack {
+            Button(action: { dismiss() }) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.black.opacity(0.85))
+                    .padding(10)
+                    .background(Circle().fill(Color.black.opacity(0.06)))
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 6)
+    }
+
+    // MARK: - Header
+
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "graduationcap.fill")
+                    .foregroundStyle(Color.blue.opacity(0.85))
+                Text("STUDENT ACCESS ONLY")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Color.blue.opacity(0.85))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color.blue.opacity(0.10))
+            )
+
+            Text("Create Student\nAccount")
+                .font(.system(size: 34, weight: .heavy, design: .rounded))
+                .foregroundStyle(.black.opacity(0.88))
+
+            Text("Join your peers! Create your account to start learning.")
+                .font(.subheadline)
+                .foregroundStyle(.black.opacity(0.55))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 22)
+        .padding(.top, 4)
+    }
+
+    // MARK: - Form
+
+    private var formSection: some View {
+        VStack(spacing: 14) {
+            nameFields
+            dobField
+            emailField
+            passwordFields
+            createButton
+            loginLink
+        }
+        .padding(.horizontal, 22)
+    }
+
+    // MARK: - Name Fields
+
+    private var nameFields: some View {
+        VStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("First Name")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.black.opacity(0.65))
+
+                let firstNameEmpty = showNameError && firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                TextField("John", text: $firstName)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(firstNameEmpty ? Color.red : Color.black.opacity(0.08), lineWidth: firstNameEmpty ? 2 : 1)
+                            )
+                    )
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Last Name")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.black.opacity(0.65))
+
+                let lastNameEmpty = showNameError && lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                TextField("Smith", text: $lastName)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(lastNameEmpty ? Color.red : Color.black.opacity(0.08), lineWidth: lastNameEmpty ? 2 : 1)
+                            )
+                    )
+
+                if showNameError {
+                    Text("Please enter your first and last name.")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+        }
+    }
+
+    // MARK: - DOB Field
+
+    private var dobField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Date of Birth")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.black.opacity(0.65))
+
+            DatePicker(
+                "",
+                selection: $dob,
+                in: ...Date(),
+                displayedComponents: .date
+            )
+            .datePickerStyle(.compact)
+            .labelsHidden()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                    )
+            )
+        }
+    }
+
+    // MARK: - Email Field
+
+    private var emailField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Email Address")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.black.opacity(0.65))
+
+            HStack {
+                Image(systemName: "at")
+                    .foregroundStyle(.black.opacity(0.45))
+
+                TextField("Enter your email", text: $email)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+                    .keyboardType(.emailAddress)
+
+                if showEmailError {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundStyle(.red)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(showEmailError ? Color.red : Color.black.opacity(0.08), lineWidth: showEmailError ? 2 : 1)
+                    )
+            )
+
+            if showEmailError {
+                Text("Please enter a valid email address.")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+
+    // MARK: - Password Fields
+
+    private var passwordFields: some View {
+        VStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Choose Password")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.black.opacity(0.65))
+
+                SecureField("Min. 8 characters", text: $password)
+                    .textContentType(.newPassword)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(showPasswordError ? Color.red : Color.black.opacity(0.08), lineWidth: showPasswordError ? 2 : 1)
+                            )
+                    )
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Confirm Password")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.black.opacity(0.65))
+
+                SecureField("Repeat password", text: $confirmPassword)
+                    .textContentType(.newPassword)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(showPasswordError ? Color.red : Color.black.opacity(0.08), lineWidth: showPasswordError ? 2 : 1)
+                            )
+                    )
+
+                if showPasswordError {
+                    Text("Password must be 8+ characters and match.")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+        }
+    }
+
+    // MARK: - Create Button
+
+    private var createButton: some View {
+        Button {
+            showNameError = !namesValid
+            showEmailError = !isValidEmail
+            showPasswordError = !(passwordValid && passwordsMatch)
+
+            if canCreate {
+                goToVerify = true
+            }
+        } label: {
+            HStack {
+                Text("Create Account")
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                Spacer()
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 14, weight: .bold))
+            }
+            .foregroundStyle(canCreate ? Color.white : Color.black.opacity(0.35))
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(canCreate ? Color.blue : Color.black.opacity(0.10))
+            )
+        }
+        .padding(.top, 6)
+    }
+
+    // MARK: - Login Link
+
+    private var loginLink: some View {
+        HStack(spacing: 6) {
+            Text("Already part of the community?")
+                .foregroundStyle(.black.opacity(0.55))
+
+            NavigationLink {
+                SignInView(isLoggedIn: $isLoggedIn)
+                    .navigationBarHidden(true)
+            } label: {
+                Text("Log In")
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.blue)
+            }
+        }
+        .font(.footnote)
+        .padding(.top, 6)
     }
 }
 

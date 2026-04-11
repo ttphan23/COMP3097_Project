@@ -11,6 +11,7 @@ struct SignInView: View {
     @State private var errorMessage: String = "Please enter a valid email and password."
 
     @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @StateObject private var loc = LocalizationManager.shared
 
     private var isValidEmail: Bool {
         let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -37,11 +38,11 @@ struct SignInView: View {
                 .padding(.top, 6)
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Sign In")
+                    Text(loc.localized("Sign In"))
                         .font(.system(size: 34, weight: .heavy, design: .rounded))
                         .foregroundStyle(.black.opacity(0.88))
 
-                    Text("Use your email and password to continue.")
+                    Text(loc.localized("Use your email and password to continue."))
                         .font(.subheadline)
                         .foregroundStyle(.black.opacity(0.55))
                 }
@@ -51,11 +52,11 @@ struct SignInView: View {
 
                 VStack(spacing: 14) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Email")
+                        Text(loc.localized("Email"))
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(.black.opacity(0.65))
 
-                        TextField("alex.smith@example.com", text: $email)
+                        TextField("Enter your email", text: $email)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled(true)
                             .keyboardType(.emailAddress)
@@ -72,7 +73,7 @@ struct SignInView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Password")
+                        Text(loc.localized("Password"))
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(.black.opacity(0.65))
 
@@ -133,7 +134,7 @@ struct SignInView: View {
                         showError = false
                         isLoggedIn = true
                     } label: {
-                        Text("Sign In")
+                        Text(loc.localized("Sign In"))
                             .font(.system(size: 16, weight: .bold, design: .rounded))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)

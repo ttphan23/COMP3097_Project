@@ -24,7 +24,7 @@ struct CourseCatalogView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(.systemBackground).ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Header
@@ -33,7 +33,7 @@ struct CourseCatalogView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(loc.localized("Course Catalog"))
                                 .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(.black.opacity(0.9))
+                                .foregroundStyle(Color(.label).opacity(0.9))
 
                             HStack(spacing: 6) {
                                 Image(systemName: "checkmark.seal.fill")
@@ -101,7 +101,7 @@ struct CourseCatalogView: View {
                     }
                 }
                 .padding(16)
-                .background(Color.white)
+                .background(Color(.secondarySystemBackground))
                 .overlay(alignment: .bottom) {
                     Divider()
                 }
@@ -272,7 +272,7 @@ struct CourseCard: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(title)
                         .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(.black.opacity(0.9))
+                        .foregroundStyle(Color(.label).opacity(0.9))
                         .lineLimit(2)
 
                     HStack(spacing: 14) {
@@ -341,7 +341,7 @@ struct CourseCard: View {
             }
             .padding(14)
         }
-        .background(Color.white)
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(
             RoundedRectangle(cornerRadius: 24)

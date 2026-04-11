@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WelcomeScreen: View {
     @Binding var isLoggedIn: Bool
+    @StateObject private var loc = LocalizationManager.shared
 
     var body: some View {
         ZStack {
@@ -58,11 +59,11 @@ struct WelcomeScreen: View {
                     .padding(.horizontal, 8)
 
                     VStack(spacing: 6) {
-                        Text("Master your courses")
+                        Text(loc.localized("Master your courses"))
                             .font(.system(size: 22, weight: .heavy, design: .rounded))
                             .foregroundStyle(Color(red: 0.10, green: 0.27, blue: 0.55))
 
-                        Text("with ease")
+                        Text(loc.localized("with ease"))
                             .font(.system(size: 22, weight: .heavy, design: .rounded))
                             .foregroundStyle(Color(red: 0.10, green: 0.27, blue: 0.55))
                             .padding(.horizontal, 14)
@@ -73,7 +74,7 @@ struct WelcomeScreen: View {
                             )
                     }
 
-                    Text("The friendly learning companion\nbuilt just for university students.")
+                    Text(loc.localized("The friendly learning companion\nbuilt just for university students."))
                         .font(.footnote)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.white.opacity(0.90))
@@ -84,7 +85,7 @@ struct WelcomeScreen: View {
                             CreateAccountView(isLoggedIn: $isLoggedIn)
                                 .navigationBarHidden(true)
                         } label: {
-                            Text("Create Student Account")
+                            Text(loc.localized("Create Student Account"))
                                 .font(.system(size: 16, weight: .bold, design: .rounded))
                                 .foregroundStyle(Color(red: 0.10, green: 0.27, blue: 0.55))
                                 .frame(maxWidth: .infinity)
@@ -97,7 +98,7 @@ struct WelcomeScreen: View {
                             SignInView(isLoggedIn: $isLoggedIn)
                                 .navigationBarHidden(true)
                         } label: {
-                            Text("Sign In")
+                            Text(loc.localized("Sign In"))
                                 .font(.system(size: 16, weight: .bold, design: .rounded))
                                 .foregroundStyle(Color(red: 0.10, green: 0.27, blue: 0.55))
                                 .frame(maxWidth: .infinity)

@@ -169,7 +169,9 @@ class DataPersistenceManager: ObservableObject {
     }
 
     func updateDarkModePreference(_ enabled: Bool) {
-        appData.preferences.darkModeEnabled = enabled
+        var updatedData = appData
+        updatedData.preferences.darkModeEnabled = enabled
+        appData = updatedData
         savePreferencesToCoreData(appData.preferences)
     }
 
@@ -208,12 +210,15 @@ class DataPersistenceManager: ObservableObject {
         fetchRequest.predicate = NSPredicate(format: "courseId == %@", progress.courseId)
 
         let cdProgress: CDCourseProgress
+        let isNewEnrollment: Bool
 
         if let existing = try? context.fetch(fetchRequest).first {
             cdProgress = existing
+            isNewEnrollment = false
         } else {
             cdProgress = CDCourseProgress(context: context)
             cdProgress.id = progress.id
+            isNewEnrollment = true
         }
 
         cdProgress.courseId = progress.courseId
@@ -229,6 +234,14 @@ class DataPersistenceManager: ObservableObject {
 
         coreData.save()
         loadAllCourseProgress()
+
+        // Update user's coursesEnrolled array
+        if isNewEnrollment, var user = currentUser {
+            if !user.coursesEnrolled.contains(progress.courseId) {
+                user.coursesEnrolled.append(progress.courseId)
+                saveCurrentUser(user)
+            }
+        }
     }
 
     func getCourseProgress(for courseId: String) -> CourseProgress? {
@@ -416,6 +429,9 @@ class DataPersistenceManager: ObservableObject {
 
         coreData.save()
         loadAllAssignments()
+
+        // Schedule notification reminder
+        NotificationManager.shared.scheduleAssignmentReminder(for: assignment)
     }
 
     func toggleAssignmentCompleted(id: String) {
@@ -426,6 +442,10 @@ class DataPersistenceManager: ObservableObject {
             cdAssignment.isCompleted.toggle()
             coreData.save()
             loadAllAssignments()
+
+            if cdAssignment.isCompleted {
+                NotificationManager.shared.cancelReminder(for: id)
+            }
         }
     }
 

@@ -15,6 +15,9 @@ struct EducationApp: App {
         WindowGroup {
             ContentView()
                 .preferredColorScheme(persistenceManager.appData.preferences.darkModeEnabled ? .dark : .light)
+                .onAppear {
+                    NotificationManager.shared.requestPermission()
+                }
         }
     }
 }
