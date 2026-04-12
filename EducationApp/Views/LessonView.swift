@@ -4,18 +4,24 @@ struct LessonView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var persistenceManager = DataPersistenceManager.shared
 
-    @State private var currentTime: Double = 12.75
+    @State private var currentTime: Double = 0.0
     @State private var isPlaying: Bool = false
-    @State private var studyNotes: String = "Aristotle's Tabula Rasa...\nThe behaviorist movement in the 1920s..."
+    @State private var studyNotes: String = ""
     @State private var showNotesEditor: Bool = false
     @State private var lessonCompleted: Bool = false
     @State private var showCompletionMessage: Bool = false
+    @State private var userRating: Int = 0
+    @State private var showRating: Bool = false
 
-    let lessonId: String = "lesson_2_cognitive_processes"
-    let courseId: String = "course_introduction_psychology"
-    let lessonName: String = "2. Cognitive Processes"
-    let totalDuration: Double = 24.0
-    let completionPercentage: Double = 0.65
+    var lessonId: String
+    var courseId: String
+    var lessonName: String
+    var totalDuration: Double = 24.0
+
+    var completionPercentage: Double {
+        guard totalDuration > 0 else { return 0 }
+        return min(currentTime / totalDuration, 1.0)
+    }
 
     var timeString: String {
         let minutes = Int(currentTime) / 60
@@ -31,38 +37,80 @@ struct LessonView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.97, green: 0.98, blue: 0.99).ignoresSafeArea()
+            Color(.systemBackground).ignoresSafeArea()
 
             VStack(spacing: 0) {
                 LessonHeaderView(dismiss: dismiss)
 
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 0) {
-                        VideoPlayerSection(isPlaying: $isPlaying, currentTime: currentTime, totalTimeString: totalTimeString, timeString: timeString, completionPercentage: completionPercentage)
+                        VideoPlayerSection(
+                            isPlaying: $isPlaying,
+                            currentTime: currentTime,
+                            totalTimeString: totalTimeString,
+                            timeString: timeString,
+                            completionPercentage: completionPercentage
+                        )
 
-                        LessonTitleSection()
+                        LessonTitleSection(lessonName: lessonName)
 
                         LearningJourneyCard(completionPercentage: completionPercentage)
 
                         StudyNotesSection(studyNotes: $studyNotes)
 
-                        MarkCompleteButton(lessonCompleted: $lessonCompleted, persistenceManager: persistenceManager, lessonId: lessonId, studyNotes: studyNotes, dismiss: dismiss)
+                        MarkCompleteButton(
+                            lessonCompleted: $lessonCompleted,
+                            showRating: $showRating,
+                            persistenceManager: persistenceManager,
+                            lessonId: lessonId,
+                            courseId: courseId,
+                            studyNotes: studyNotes
+                        )
+
+                        if showRating {
+                            LessonRatingView(
+                                rating: $userRating,
+                                lessonId: lessonId,
+                                persistenceManager: persistenceManager,
+                                dismiss: dismiss
+                            )
+                        }
                     }
                 }
             }
         }
         .onAppear {
+            persistenceManager.updateUserStreak()
+
             if let existing = persistenceManager.getLessonProgress(for: lessonId) {
                 lessonCompleted = existing.isCompleted
-                studyNotes = existing.notes
+                if !existing.notes.isEmpty {
+                    studyNotes = existing.notes
+                }
+                currentTime = existing.watchedDuration
+                userRating = existing.rating
+                if existing.isCompleted && existing.rating > 0 {
+                    showRating = true
+                }
+            } else {
+                let progress = LessonProgress(
+                    lessonId: lessonId,
+                    courseId: courseId,
+                    lessonName: lessonName,
+                    totalDuration: totalDuration
+                )
+                persistenceManager.saveLessonProgress(progress)
             }
         }
-        .onChange(of: currentTime) {
+        .onChange(of: currentTime) { _, newValue in
             persistenceManager.updateLessonProgress(
                 lessonId: lessonId,
-                watchedDuration: currentTime,
+                watchedDuration: newValue,
                 totalDuration: totalDuration
             )
+        }
+        .onChange(of: studyNotes) { _, newValue in
+            persistenceManager.saveLessonNotes(lessonId: lessonId, notes: newValue)
         }
     }
 }
@@ -71,6 +119,7 @@ struct LessonView: View {
 
 struct LessonHeaderView: View {
     let dismiss: DismissAction
+    @State private var showSettings: Bool = false
 
     var body: some View {
         HStack {
@@ -89,11 +138,11 @@ struct LessonHeaderView: View {
             Text("CLASSROOM")
                 .font(.system(size: 14, weight: .black))
                 .tracking(0.5)
-                .foregroundStyle(.black.opacity(0.85))
+                .foregroundStyle(Color(.label).opacity(0.85))
 
             Spacer()
 
-            Button(action: {}) {
+            Button(action: { showSettings = true }) {
                 Image(systemName: "gear")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.gray.opacity(0.6))
@@ -110,6 +159,50 @@ struct LessonHeaderView: View {
         .background(Color.white.opacity(0.8))
         .overlay(alignment: .bottom) {
             Divider()
+        }
+        .sheet(isPresented: $showSettings) {
+            LessonSettingsSheet()
+        }
+    }
+}
+
+struct LessonSettingsSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @State private var autoPlay: Bool = true
+    @State private var quality: String = "High"
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Playback") {
+                    Toggle("Auto-play next lesson", isOn: $autoPlay)
+                    Picker("Video Quality", selection: $quality) {
+                        Text("Low").tag("Low")
+                        Text("Medium").tag("Medium")
+                        Text("High").tag("High")
+                    }
+                }
+                Section("About") {
+                    HStack {
+                        Text("App Version")
+                        Spacer()
+                        Text("1.0").foregroundStyle(.gray)
+                    }
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .onAppear {
+                let prefs = persistenceManager.loadPreferences()
+                autoPlay = prefs.autoPlayEnabled
+                quality = prefs.playbackQuality
+            }
         }
     }
 }
@@ -143,7 +236,7 @@ struct VideoPlayerSection: View {
             Button(action: { isPlaying.toggle() }) {
                 Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 30, weight: .bold))
-                    .foregroundStyle(.black.opacity(0.9))
+                    .foregroundStyle(Color(.label).opacity(0.9))
                     .frame(width: 80, height: 80)
                     .background(Circle().fill(Color(red: 0.99, green: 0.88, blue: 0.28)))
                     .shadow(radius: 8)
@@ -205,6 +298,8 @@ struct ProgressBarView: View {
 }
 
 struct LessonTitleSection: View {
+    let lessonName: String
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
@@ -222,12 +317,12 @@ struct LessonTitleSection: View {
             .background(Color.blue.opacity(0.15))
             .cornerRadius(12)
 
-            Text("The History of Cognition")
+            Text(lessonName)
                 .font(.system(size: 28, weight: .black))
-                .foregroundStyle(.black.opacity(0.9))
+                .foregroundStyle(Color(.label).opacity(0.9))
                 .lineLimit(3)
 
-            Text("Module 1: Foundations of Mind")
+            Text("Lesson in progress")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(.gray.opacity(0.6))
         }
@@ -245,11 +340,11 @@ struct LearningJourneyCard: View {
             HStack {
                 Text("Learning Journey")
                     .font(.system(size: 13, weight: .black))
-                    .foregroundStyle(.black.opacity(0.85))
+                    .foregroundStyle(Color(.label).opacity(0.85))
 
                 Spacer()
 
-                Text("65% COMPLETED")
+                Text("\(Int(completionPercentage * 100))% COMPLETED")
                     .font(.system(size: 11, weight: .black))
                     .foregroundStyle(Color.green)
                     .padding(.horizontal, 8)
@@ -273,7 +368,7 @@ struct LearningJourneyCard: View {
             )
         }
         .padding(16)
-        .background(Color.white)
+        .background(Color(.secondarySystemBackground))
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
@@ -292,11 +387,11 @@ struct StudyNotesSection: View {
             HStack(spacing: 8) {
                 Image(systemName: "note.text")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.black.opacity(0.85))
+                    .foregroundStyle(Color(.label).opacity(0.85))
 
                 Text("Study Notes")
                     .font(.system(size: 16, weight: .black))
-                    .foregroundStyle(.black.opacity(0.9))
+                    .foregroundStyle(Color(.label).opacity(0.9))
 
                 Spacer()
             }
@@ -311,11 +406,16 @@ struct StudyNotesSection: View {
 
 struct NotebookView: View {
     @Binding var studyNotes: String
+    @State private var noteColor: Color = .black
+    @State private var showColorPicker: Bool = false
+
+    let noteColors: [Color] = [.black, .blue, .red, .green, .purple, .orange]
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
+                    // Spiral binding dots
                     VStack(spacing: 24) {
                         ForEach(0..<8, id: \.self) { _ in
                             Circle()
@@ -328,21 +428,79 @@ struct NotebookView: View {
                         }
                     }
                     .padding(.leading, 12)
+<<<<<<< HEAD
                     .padding(.trailing, 20)
+=======
+                    .padding(.trailing, 8)
+>>>>>>> main
                     .padding(.top, 12)
 
-                    VStack(spacing: 0) {
-                        ForEach(0..<8, id: \.self) { _ in
-                            HStack(spacing: 0) {
-                                Text("")
-                                    .frame(height: 32)
+                    // Red margin line
+                    Rectangle()
+                        .fill(Color.red.opacity(0.3))
+                        .frame(width: 2)
+                        .padding(.vertical, 4)
 
-                                Divider()
-                                    .frame(height: 1)
-                                    .background(Color.gray.opacity(0.2))
+                    // Editable text area
+                    TextEditor(text: $studyNotes)
+                        .font(.system(size: 16, design: .monospaced))
+                        .foregroundStyle(noteColor.opacity(0.8))
+                        .scrollContentBackground(.hidden)
+                        .padding(.leading, 8)
+                        .padding(.top, 4)
+                }
+            }
+            .frame(minHeight: 200)
+            .background(Color(.secondarySystemBackground))
+
+            // Tool buttons
+            VStack(spacing: 8) {
+                Button(action: { showColorPicker.toggle() }) {
+                    Image(systemName: "paintpalette.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(noteColor)
+                        .frame(width: 32, height: 32)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 2)
+                        )
+                }
+
+                Button(action: {
+                    let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .short)
+                    studyNotes += "\n[\(timestamp)] "
+                }) {
+                    Image(systemName: "clock.badge.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.gray.opacity(0.6))
+                        .frame(width: 32, height: 32)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 2)
+                        )
+                }
+
+                if showColorPicker {
+                    VStack(spacing: 6) {
+                        ForEach(noteColors, id: \.self) { color in
+                            Button(action: {
+                                noteColor = color
+                                showColorPicker = false
+                            }) {
+                                Circle()
+                                    .fill(color)
+                                    .frame(width: 24, height: 24)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(noteColor == color ? Color.white : Color.clear, lineWidth: 2)
+                                    )
+                                    .shadow(radius: noteColor == color ? 2 : 0)
                             }
                         }
                     }
+<<<<<<< HEAD
 
                     Spacer()
                 }
@@ -391,6 +549,15 @@ struct NotebookView: View {
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(Color.gray.opacity(0.2), lineWidth: 2)
                         )
+=======
+                    .padding(8)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+                    .shadow(radius: 4)
+>>>>>>> main
                 }
             }
             .padding(12)
@@ -406,20 +573,31 @@ struct NotebookView: View {
 
 struct MarkCompleteButton: View {
     @Binding var lessonCompleted: Bool
+    @Binding var showRating: Bool
     let persistenceManager: DataPersistenceManager
     let lessonId: String
+    let courseId: String
     let studyNotes: String
-    let dismiss: DismissAction
 
     var body: some View {
         Button(action: {
             persistenceManager.markLessonAsComplete(lessonId: lessonId)
             persistenceManager.saveLessonNotes(lessonId: lessonId, notes: studyNotes)
-            lessonCompleted = true
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                dismiss()
+            // Update course progress
+            let completedCount = persistenceManager.getCompletedModuleIds(for: courseId).count
+            if let courseProgress = persistenceManager.getCourseProgress(for: courseId) {
+                let total = courseProgress.totalLessons
+                let percentage = total > 0 ? (Double(completedCount) / Double(total)) * 100.0 : 0
+                persistenceManager.updateCourseProgress(
+                    courseId: courseId,
+                    completionPercentage: percentage,
+                    lessonsCompleted: completedCount
+                )
             }
+
+            lessonCompleted = true
+            showRating = true
         }) {
             HStack(spacing: 12) {
                 Image(systemName: lessonCompleted ? "checkmark.circle.fill" : "checkmark.circle")
@@ -450,8 +628,75 @@ struct MarkCompleteButton: View {
     }
 }
 
+// MARK: - Lesson Rating View
+
+struct LessonRatingView: View {
+    @Binding var rating: Int
+    let lessonId: String
+    let persistenceManager: DataPersistenceManager
+    let dismiss: DismissAction
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Rate This Lesson")
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(Color(.label).opacity(0.85))
+
+            HStack(spacing: 12) {
+                ForEach(1...5, id: \.self) { star in
+                    Button(action: {
+                        rating = star
+                        persistenceManager.rateLessonProgress(lessonId: lessonId, rating: star)
+                    }) {
+                        Image(systemName: star <= rating ? "star.fill" : "star")
+                            .font(.system(size: 32))
+                            .foregroundStyle(star <= rating ? Color.yellow : Color.gray.opacity(0.3))
+                    }
+                }
+            }
+
+            if rating > 0 {
+                Text(ratingLabel)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.gray.opacity(0.6))
+
+                Button(action: { dismiss() }) {
+                    Text("Done")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 10)
+                        .background(Color.blue)
+                        .cornerRadius(12)
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding(20)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 2)
+        )
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+    }
+
+    var ratingLabel: String {
+        switch rating {
+        case 1: return "Needs Improvement"
+        case 2: return "Fair"
+        case 3: return "Good"
+        case 4: return "Great!"
+        case 5: return "Excellent!"
+        default: return ""
+        }
+    }
+}
+
 #Preview {
     NavigationStack {
-        LessonView()
+        LessonView(lessonId: "psy_mod_1", courseId: "course_intro_psychology", lessonName: "1. Foundations of Behavior")
     }
 }

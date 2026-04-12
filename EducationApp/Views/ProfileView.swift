@@ -4,15 +4,47 @@ struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var isLoggedIn: Bool
     @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @StateObject private var loc = LocalizationManager.shared
 
     @State private var showLogoutAlert: Bool = false
+    @State private var showEditProfile: Bool = false
     @State private var notificationsEnabled: Bool = true
     @State private var darkModeEnabled: Bool = false
     @State private var language: String = "English"
+    @State private var stats = (totalCoursesEnrolled: 0, totalCoursesCompleted: 0, totalLessonsCompleted: 0, averageProgress: 0.0)
 
     var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text(loc.localized("Profile"))
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(Color(.label).opacity(0.9))
+
+                Spacer()
+
+                Button(action: { showEditProfile = true }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Edit Profile")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(.secondarySystemBackground))
+                    )
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemBackground))
+            .overlay(alignment: .bottom) {
+                Divider()
+            }
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 20) {
@@ -31,14 +63,18 @@ struct ProfileView: View {
                                     )
                             )
 
-                        VStack(spacing: 4) {
-                            Text("Alex Smith")
+                        VStack(spacing: 6) {
+                            Text("\(persistenceManager.currentUser?.firstName ?? "") \(persistenceManager.currentUser?.lastName ?? "")")
                                 .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(.black.opacity(0.9))
+                                .foregroundStyle(Color(.label).opacity(0.9))
 
-                            Text("alex.smith@stanford.edu")
+                            Text(persistenceManager.currentUser?.email ?? "No email")
                                 .font(.system(size: 13))
-                                .foregroundStyle(.gray.opacity(0.6))
+                                .foregroundStyle(Color(.secondaryLabel))
+
+                            Text("DOB: \(formattedDOB)")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Color(.secondaryLabel))
                         }
 
                         HStack(spacing: 8) {
@@ -46,7 +82,7 @@ struct ProfileView: View {
                                 .font(.system(size: 12))
                                 .foregroundStyle(Color.green)
 
-                            Text("Stanford University Verified")
+                            Text("\(persistenceManager.currentUser?.university ?? "University") Verified")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(Color.green)
                         }
@@ -57,36 +93,56 @@ struct ProfileView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(20)
-                    .background(Color.gray.opacity(0.05))
+                    .background(Color(.secondarySystemBackground).opacity(0.5))
                     .cornerRadius(16)
+
+                    // Personal Information
+                    VStack(spacing: 12) {
+                        Text("Personal Information")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color(.label).opacity(0.9))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        profileInfoRow(label: "First Name", value: persistenceManager.currentUser?.firstName ?? "")
+                        profileInfoRow(label: "Last Name", value: persistenceManager.currentUser?.lastName ?? "")
+                        profileInfoRow(label: "Email", value: persistenceManager.currentUser?.email ?? "")
+                        profileInfoRow(label: "Date of Birth", value: formattedDOB)
+                    }
+                    .padding(16)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+                    )
 
                     // Stats
                     VStack(spacing: 12) {
-                        Text("Learning Stats")
+                        Text(loc.localized("Learning Stats"))
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.black.opacity(0.9))
+                            .foregroundStyle(Color(.label).opacity(0.9))
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                         HStack(spacing: 12) {
                             StatCard(
                                 icon: "book.fill",
                                 iconColor: Color.blue,
-                                title: "Courses Enrolled",
-                                value: "8"
+                                title: loc.localized("Courses Enrolled"),
+                                value: "\(stats.totalCoursesEnrolled)"
                             )
 
                             StatCard(
                                 icon: "checkmark.circle.fill",
                                 iconColor: Color.green,
-                                title: "Completed",
-                                value: "3"
+                                title: loc.localized("Completed"),
+                                value: "\(stats.totalCoursesCompleted)"
                             )
 
                             StatCard(
                                 icon: "flame.fill",
                                 iconColor: Color.orange,
-                                title: "Streak",
-                                value: "12d"
+                                title: loc.localized("Lessons Done"),
+                                value: "\(stats.totalLessonsCompleted)"
                             )
                         }
                         NavigationLink(destination: SavedCoursesView()) {
@@ -104,7 +160,7 @@ struct ProfileView: View {
                         }
                     }
                     .padding(16)
-                    .background(Color.white)
+                    .background(Color(.secondarySystemBackground))
                     .cornerRadius(16)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
@@ -113,22 +169,21 @@ struct ProfileView: View {
 
                     // Settings Section
                     VStack(spacing: 0) {
-                        Text("Settings")
+                        Text(loc.localized("Settings"))
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.black.opacity(0.9))
+                            .foregroundStyle(Color(.label).opacity(0.9))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.bottom, 12)
 
-                        // Notifications Toggle
                         HStack(spacing: 12) {
                             Image(systemName: "bell.fill")
                                 .font(.system(size: 14))
                                 .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
                                 .frame(width: 24, alignment: .center)
 
-                            Text("Notifications")
+                            Text(loc.localized("Notifications"))
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.black.opacity(0.85))
+                                .foregroundStyle(Color(.label).opacity(0.85))
 
                             Spacer()
 
@@ -141,16 +196,15 @@ struct ProfileView: View {
                         Divider()
                             .padding(.vertical, 8)
 
-                        // Dark Mode Toggle
                         HStack(spacing: 12) {
                             Image(systemName: "moon.fill")
                                 .font(.system(size: 14))
                                 .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
                                 .frame(width: 24, alignment: .center)
 
-                            Text("Dark Mode")
+                            Text(loc.localized("Dark Mode"))
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.black.opacity(0.85))
+                                .foregroundStyle(Color(.label).opacity(0.85))
 
                             Spacer()
 
@@ -163,16 +217,15 @@ struct ProfileView: View {
                         Divider()
                             .padding(.vertical, 8)
 
-                        // Language Picker
                         HStack(spacing: 12) {
                             Image(systemName: "globe")
                                 .font(.system(size: 14))
                                 .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
                                 .frame(width: 24, alignment: .center)
 
-                            Text("Language")
+                            Text(loc.localized("Language"))
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.black.opacity(0.85))
+                                .foregroundStyle(Color(.label).opacity(0.85))
 
                             Spacer()
 
@@ -184,6 +237,7 @@ struct ProfileView: View {
                             }
                             .onChange(of: language) {
                                 persistenceManager.updateLanguagePreference(language)
+                                loc.currentLanguage = language
                             }
                         }
 
@@ -192,12 +246,12 @@ struct ProfileView: View {
 
                         SettingItem(
                             icon: "lock.fill",
-                            label: "Privacy",
+                            label: loc.localized("Privacy"),
                             value: "Managed"
                         )
                     }
                     .padding(16)
-                    .background(Color.white)
+                    .background(Color(.secondarySystemBackground))
                     .cornerRadius(16)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
@@ -210,7 +264,7 @@ struct ProfileView: View {
                             Image(systemName: "arrowtriangleright.fill")
                                 .font(.system(size: 12, weight: .semibold))
 
-                            Text("Sign Out")
+                            Text(loc.localized("Sign Out"))
                                 .font(.system(size: 15, weight: .bold))
                         }
                         .foregroundStyle(.red)
@@ -227,6 +281,7 @@ struct ProfileView: View {
                     Spacer(minLength: 20)
                 }
                 .padding(.horizontal, 16)
+<<<<<<< HEAD
                 .padding(.vertical, 20)
                 .padding(.bottom, 40)
             }
@@ -256,23 +311,121 @@ struct ProfileView: View {
                 }
 
                 Spacer()
+=======
+                .padding(.top, 20)
+                .padding(.bottom, 20)
+>>>>>>> main
             }
         }
+        .background(Color(.systemBackground))
         .alert("Sign Out", isPresented: $showLogoutAlert) {
             Button("Cancel", role: .cancel) {
                 showLogoutAlert = false
             }
             Button("Sign Out", role: .destructive) {
+                persistenceManager.signOutUser()
                 isLoggedIn = false
+                dismiss()
             }
         } message: {
             Text("Are you sure you want to sign out? You'll need to sign in again to access your courses.")
+        }
+        .sheet(isPresented: $showEditProfile) {
+            EditProfileSheet(persistenceManager: persistenceManager)
         }
         .onAppear {
             let prefs = persistenceManager.loadPreferences()
             notificationsEnabled = prefs.notificationsEnabled
             darkModeEnabled = prefs.darkModeEnabled
             language = prefs.language
+            loc.currentLanguage = prefs.language
+            stats = persistenceManager.getAppStatistics()
+        }
+    }
+
+    private var formattedDOB: String {
+        guard let dob = persistenceManager.currentUser?.dob else { return "Not set" }
+        return dob.formatted(date: .abbreviated, time: .omitted)
+    }
+
+    @ViewBuilder
+    private func profileInfoRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color(.label).opacity(0.85))
+
+            Spacer()
+
+            Text(value.isEmpty ? "Not set" : value)
+                .font(.system(size: 14))
+                .foregroundStyle(Color(.secondaryLabel))
+                .multilineTextAlignment(.trailing)
+        }
+    }
+}
+
+// MARK: - Edit Profile Sheet
+
+struct EditProfileSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let persistenceManager: DataPersistenceManager
+
+    @State private var firstName: String = ""
+    @State private var lastName: String = ""
+    @State private var email: String = ""
+    @State private var password: String = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Personal Information") {
+                    TextField("First Name", text: $firstName)
+                    TextField("Last Name", text: $lastName)
+
+                    TextField("Email", text: $email)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.emailAddress)
+
+                    SecureField("Change Password", text: $password)
+                }
+
+                Section("Date of Birth") {
+                    Text(
+                        persistenceManager.currentUser?.dob.formatted(date: .abbreviated, time: .omitted)
+                        ?? "Not set"
+                    )
+                    .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Edit Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        guard !firstName.isEmpty, !lastName.isEmpty, !email.isEmpty, !password.isEmpty else { return }
+
+                        persistenceManager.updateUserProfile(
+                            firstName: firstName,
+                            lastName: lastName,
+                            email: email,
+                            password: password
+                        )
+
+                        dismiss()
+                    }
+                    .disabled(firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty)
+                }
+            }
+            .onAppear {
+                firstName = persistenceManager.currentUser?.firstName ?? ""
+                lastName = persistenceManager.currentUser?.lastName ?? ""
+                email = persistenceManager.currentUser?.email ?? ""
+                password = persistenceManager.currentUser?.password ?? ""
+            }
         }
     }
 }
@@ -292,17 +445,17 @@ struct StatCard: View {
             VStack(spacing: 2) {
                 Text(value)
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.black.opacity(0.9))
+                    .foregroundStyle(Color(.label).opacity(0.9))
 
                 Text(title)
                     .font(.system(size: 10))
-                    .foregroundStyle(.gray.opacity(0.6))
+                    .foregroundStyle(Color(.secondaryLabel))
                     .multilineTextAlignment(.center)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(12)
-        .background(Color.gray.opacity(0.05))
+        .background(Color(.tertiarySystemBackground))
         .cornerRadius(12)
     }
 }
@@ -321,17 +474,17 @@ struct SettingItem: View {
 
             Text(label)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.black.opacity(0.85))
+                .foregroundStyle(Color(.label).opacity(0.85))
 
             Spacer()
 
             Text(value)
                 .font(.system(size: 13))
-                .foregroundStyle(.gray.opacity(0.6))
+                .foregroundStyle(Color(.secondaryLabel))
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.gray.opacity(0.4))
+                .foregroundStyle(Color(.tertiaryLabel))
         }
     }
 }

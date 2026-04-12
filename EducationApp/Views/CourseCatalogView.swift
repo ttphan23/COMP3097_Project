@@ -4,22 +4,36 @@ struct CourseCatalogView: View {
     @State private var searchText: String = ""
     @State private var selectedCategory: String = "All"
     @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @StateObject private var loc = LocalizationManager.shared
     @State private var enrolledCourses: Set<String> = []
+    @State private var showNotifications: Bool = false
 
     let categories = ["All", "Science", "Arts", "Engineering", "Business"]
+    let courses = CourseStore.sampleCourses
+
+    var filteredCourses: [Course] {
+        var result = courses
+        if selectedCategory != "All" {
+            result = result.filter { $0.category == selectedCategory }
+        }
+        if !searchText.isEmpty {
+            result = result.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.category.localizedCaseInsensitiveContains(searchText) || $0.instructor.localizedCaseInsensitiveContains(searchText) }
+        }
+        return result
+    }
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(.systemBackground).ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Header
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Course Catalog")
+                            Text(loc.localized("Course Catalog"))
                                 .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(.black.opacity(0.9))
+                                .foregroundStyle(Color(.label).opacity(0.9))
 
                             HStack(spacing: 6) {
                                 Image(systemName: "checkmark.seal.fill")
@@ -35,7 +49,7 @@ struct CourseCatalogView: View {
 
                         Spacer()
 
-                        Button(action: {}) {
+                        Button(action: { showNotifications = true }) {
                             ZStack(alignment: .topTrailing) {
                                 Image(systemName: "bell.fill")
                                     .font(.system(size: 16))
@@ -57,7 +71,7 @@ struct CourseCatalogView: View {
                             .font(.system(size: 16))
                             .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
 
-                        TextField("What do you want to learn today?", text: $searchText)
+                        TextField(loc.localized("What do you want to learn today?"), text: $searchText)
                             .font(.system(size: 15))
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled(true)
@@ -87,7 +101,7 @@ struct CourseCatalogView: View {
                     }
                 }
                 .padding(16)
-                .background(Color.white)
+                .background(Color(.secondarySystemBackground))
                 .overlay(alignment: .bottom) {
                     Divider()
                 }
@@ -95,28 +109,48 @@ struct CourseCatalogView: View {
                 // Course List
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 16) {
-                        NavigationLink(destination: CourseDetailsView().navigationBarHidden(true)) {
-                            CourseCard(
-                                courseId: "course_quantum_physics_101",
-                                title: "Quantum Physics 101",
-                                category: "Science",
-                                categoryColor: Color.blue,
-                                duration: "12 Weeks",
-                                difficulty: "Hard",
-                                difficultyColor: Color.red,
-                                studentCount: "12k",
-                                isEnrolled: enrolledCourses.contains("course_quantum_physics_101"),
-                                onEnroll: { courseId in
-                                    let progress = CourseProgress(
-                                        courseId: courseId,
-                                        courseName: "Quantum Physics 101",
-                                        category: "Science",
-                                        enrollmentDate: Date(),
-                                        totalLessons: 12
+                        if filteredCourses.isEmpty {
+                            VStack(spacing: 12) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 40))
+                                    .foregroundStyle(.gray.opacity(0.3))
+                                Text(loc.localized("No courses found"))
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.gray.opacity(0.6))
+                                Text("Try a different search or category")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(.gray.opacity(0.4))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 60)
+                        } else {
+                            ForEach(filteredCourses) { course in
+                                NavigationLink(destination: CourseDetailsView(course: course).navigationBarHidden(true)) {
+                                    CourseCard(
+                                        courseId: course.id,
+                                        title: course.title,
+                                        category: course.category,
+                                        categoryColor: colorForCategory(course.category),
+                                        duration: course.duration,
+                                        difficulty: course.difficulty,
+                                        difficultyColor: colorForDifficulty(course.difficulty),
+                                        studentCount: course.studentCount,
+                                        isEnrolled: enrolledCourses.contains(course.id),
+                                        onEnroll: { courseId in
+                                            let progress = CourseProgress(
+                                                courseId: courseId,
+                                                courseName: course.title,
+                                                category: course.category,
+                                                enrollmentDate: Date(),
+                                                totalLessons: course.modules.count
+                                            )
+                                            persistenceManager.saveCourseProgress(progress)
+                                            enrolledCourses.insert(courseId)
+                                        },
+                                        imageName: course.imageName
                                     )
-                                    persistenceManager.saveCourseProgress(progress)
-                                    enrolledCourses.insert(courseId)
                                 }
+<<<<<<< HEAD
                             )
                         }
 
@@ -168,6 +202,9 @@ struct CourseCatalogView: View {
                                     enrolledCourses.insert(courseId)
                                 }
                             )
+=======
+                            }
+>>>>>>> main
                         }
 
                         Spacer(minLength: 60)
@@ -178,23 +215,11 @@ struct CourseCatalogView: View {
                     let enrolled = persistenceManager.getAllCourseProgress().map { $0.courseId }
                     enrolledCourses = Set(enrolled)
                 }
-            }
-
-            // Bottom Navigation
-            VStack(spacing: 0) {
-                Spacer()
-
-                Divider()
-
-                HStack(spacing: 0) {
-                    NavigationTab(icon: "sparkles", label: "Catalog", isActive: true)
-                    NavigationTab(icon: "book.fill", label: "Courses", isActive: false)
-                    NavigationTab(icon: "bookmark.fill", label: "Saved", isActive: false)
-                    NavigationTab(icon: "person.crop.circle", label: "Profile", isActive: false)
+                .sheet(isPresented: $showNotifications) {
+                    NotificationsSheet()
                 }
-                .frame(height: 70)
-                .background(Color.white.opacity(0.9))
             }
+
         }
     }
 }
@@ -213,7 +238,11 @@ struct CategoryButton: View {
         case "Engineering":
             return Color(red: 0.196, green: 0.784, blue: 0.471)
         case "Business":
+<<<<<<< HEAD
             return Color.orange
+=======
+            return Color(red: 0.85, green: 0.65, blue: 0.0)
+>>>>>>> main
         default:
             return Color.blue
         }
@@ -254,24 +283,24 @@ struct CourseCard: View {
     let studentCount: String
     let isEnrolled: Bool
     let onEnroll: (String) -> Void
+    let imageName: String
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.gray.opacity(0.1))
-
-                Image(systemName: "book.circle.fill")
-                    .font(.system(size: 100))
-                    .foregroundStyle(categoryColor.opacity(0.2))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                    .offset(x: 20, y: 20)
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 120)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
 
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.black.opacity(0.2), Color.clear]),
+                    gradient: Gradient(colors: [Color.black.opacity(0.22), Color.clear]),
                     startPoint: .bottom,
                     endPoint: .top
                 )
+                .frame(height: 120)
 
                 HStack(spacing: 6) {
                     Circle()
@@ -289,61 +318,62 @@ struct CourseCard: View {
                 .cornerRadius(12)
                 .padding(12)
             }
-            .frame(height: 176)
+            .frame(height: 120)
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 24,
+                    topTrailingRadius: 24
+                )
+            )
 
-            VStack(alignment: .leading, spacing: 12) {
-                VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(title)
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.black.opacity(0.9))
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(Color(.label).opacity(0.9))
                         .lineLimit(2)
 
-                    HStack(spacing: 16) {
+                    HStack(spacing: 14) {
                         HStack(spacing: 6) {
                             Image(systemName: "clock.fill")
-                                .font(.system(size: 14))
+                                .font(.system(size: 13))
                                 .foregroundStyle(Color(red: 0.231, green: 0.51, blue: 0.96))
 
                             Text(duration)
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.gray.opacity(0.65))
                         }
 
                         HStack(spacing: 6) {
                             Image(systemName: "bolt.fill")
-                                .font(.system(size: 14))
+                                .font(.system(size: 13))
                                 .foregroundStyle(difficultyColor)
 
                             Text(difficulty)
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.gray.opacity(0.65))
                         }
                     }
                 }
 
                 HStack(spacing: 12) {
-                    // Student Avatars
                     HStack(spacing: -8) {
                         Circle()
                             .fill(Color.gray.opacity(0.3))
-                            .frame(width: 32, height: 32)
+                            .frame(width: 30, height: 30)
                             .overlay(
-                                Circle()
-                                    .stroke(Color.white, lineWidth: 2)
+                                Circle().stroke(Color.white, lineWidth: 2)
                             )
 
-                        VStack {
-                            Text("+\(studentCount)")
-                                .font(.system(size: 9, weight: .bold))
-                                .foregroundStyle(.gray.opacity(0.7))
-                        }
-                        .frame(width: 32, height: 32)
-                        .background(Color.gray.opacity(0.15))
-                        .cornerRadius(16)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.white, lineWidth: 2)
-                        )
+                        Text("+\(studentCount)")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.gray.opacity(0.7))
+                            .frame(width: 30, height: 30)
+                            .background(Color.gray.opacity(0.15))
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle().stroke(Color.white, lineWidth: 2)
+                            )
                     }
 
                     Spacer()
@@ -353,32 +383,29 @@ struct CourseCard: View {
                             onEnroll(courseId)
                         }
                     }) {
-                        Text(isEnrolled ? "Enrolled" : "Enroll Now")
-                            .font(.system(size: 13, weight: .bold))
+                        Text(isEnrolled ? LocalizationManager.shared.localized("Enrolled") : LocalizationManager.shared.localized("Enroll Now"))
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(isEnrolled ? .black.opacity(0.9) : .white)
-                            .frame(minWidth: 100)
+                            .padding(.horizontal, 14)
                             .padding(.vertical, 10)
-                            .padding(.horizontal, 16)
                             .background(
                                 isEnrolled
-                                    ? RoundedRectangle(cornerRadius: 16).fill(Color.gray.opacity(0.1))
-                                    : RoundedRectangle(cornerRadius: 16).fill(Color(red: 0.231, green: 0.51, blue: 0.96))
+                                ? RoundedRectangle(cornerRadius: 14).fill(Color.gray.opacity(0.1))
+                                : RoundedRectangle(cornerRadius: 14).fill(Color(red: 0.231, green: 0.51, blue: 0.96))
                             )
-                            .shadow(color: isEnrolled ? Color.clear : Color(red: 0.231, green: 0.51, blue: 0.96).opacity(0.2), radius: 8, x: 0, y: 2)
                     }
                     .disabled(isEnrolled)
                 }
             }
-            .padding(16)
+            .padding(14)
         }
-        .background(Color.white)
-        .cornerRadius(24)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(
             RoundedRectangle(cornerRadius: 24)
                 .stroke(Color.gray.opacity(0.1), lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-        .scaleEffect(0.98, anchor: .center)
     }
 }
 
@@ -398,6 +425,58 @@ struct NavigationTab: View {
         }
         .foregroundStyle(isActive ? Color(red: 0.231, green: 0.51, blue: 0.96) : .gray.opacity(0.4))
         .frame(maxWidth: .infinity)
+    }
+}
+
+func colorForCategory(_ category: String) -> Color {
+    switch category {
+    case "Science": return Color.blue
+    case "Arts": return Color.orange
+    case "Engineering": return Color(red: 0.196, green: 0.784, blue: 0.471)
+    case "Business": return Color(red: 0.85, green: 0.65, blue: 0.0)
+    default: return Color.blue
+    }
+}
+
+func colorForDifficulty(_ difficulty: String) -> Color {
+    switch difficulty {
+    case "Easy": return Color.green
+    case "Medium": return Color(red: 0.85, green: 0.65, blue: 0.0)
+    case "Hard": return Color.red
+    default: return Color.gray
+    }
+}
+
+struct NotificationsSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                Image(systemName: "bell.badge")
+                    .font(.system(size: 40))
+                    .foregroundStyle(Color.blue)
+
+                Text("Notifications")
+                    .font(.system(size: 24, weight: .bold))
+
+                Text("No new notifications right now.")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.gray)
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Notifications")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
     }
 }
 

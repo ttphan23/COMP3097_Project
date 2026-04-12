@@ -8,6 +8,10 @@ struct SignInView: View {
     @State private var password: String = ""
 
     @State private var showError: Bool = false
+    @State private var errorMessage: String = "Please enter a valid email and password."
+
+    @StateObject private var persistenceManager = DataPersistenceManager.shared
+    @StateObject private var loc = LocalizationManager.shared
 
     private var isValidEmail: Bool {
         let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -34,11 +38,11 @@ struct SignInView: View {
                 .padding(.top, 6)
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Sign In")
+                    Text(loc.localized("Sign In"))
                         .font(.system(size: 34, weight: .heavy, design: .rounded))
                         .foregroundStyle(.black.opacity(0.88))
 
-                    Text("Use your email and password to continue.")
+                    Text(loc.localized("Use your email and password to continue."))
                         .font(.subheadline)
                         .foregroundStyle(.black.opacity(0.55))
                 }
@@ -47,13 +51,12 @@ struct SignInView: View {
                 .padding(.top, 4)
 
                 VStack(spacing: 14) {
-                    // Email
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Email")
+                        Text(loc.localized("Email"))
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(.black.opacity(0.65))
 
-                        TextField("alex.smith@example.com", text: $email)
+                        TextField("Enter your email", text: $email)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled(true)
                             .keyboardType(.emailAddress)
@@ -69,13 +72,13 @@ struct SignInView: View {
                             )
                     }
 
-                    // Password
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Password")
+                        Text(loc.localized("Password"))
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(.black.opacity(0.65))
 
                         SecureField("Your password", text: $password)
+                            .textContentType(.password)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 14)
                             .background(
@@ -89,25 +92,57 @@ struct SignInView: View {
                     }
 
                     if showError {
-                        Text("Please enter a valid email address (must include @). (No real login yet)")
+                        Text(errorMessage)
                             .font(.caption)
                             .foregroundStyle(.red)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
 
                     Button {
-                        if isValidEmail {
-                            isLoggedIn = true
-                        } else {
+                        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                        let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                        guard isValidEmail, !trimmedPassword.isEmpty else {
+                            errorMessage = "Please enter a valid email and password."
                             showError = true
+                            return
                         }
+
+                        persistenceManager.loadCurrentUser()
+
+                        guard let existingUser = persistenceManager.currentUser else {
+                            errorMessage = "No account found. Please create an account first."
+                            showError = true
+                            return
+                        }
+
+                        let savedEmail = existingUser.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                        let savedPassword = existingUser.password
+
+                        guard savedEmail == trimmedEmail else {
+                            errorMessage = "No account found with that email."
+                            showError = true
+                            return
+                        }
+
+                        guard savedPassword == trimmedPassword else {
+                            errorMessage = "Incorrect password."
+                            showError = true
+                            return
+                        }
+
+                        showError = false
+                        isLoggedIn = true
                     } label: {
-                        Text("Sign In")
+                        Text(loc.localized("Sign In"))
                             .font(.system(size: 16, weight: .bold, design: .rounded))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
-                            .background(RoundedRectangle(cornerRadius: 18).fill(Color.blue))
+                            .background(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .fill(Color.blue)
+                            )
                     }
                     .padding(.top, 6)
                 }
@@ -116,7 +151,10 @@ struct SignInView: View {
                 Spacer()
             }
         }
-        .onChange(of: email) {
+        .onChange(of: email) { _, _ in
+            if showError { showError = false }
+        }
+        .onChange(of: password) { _, _ in
             if showError { showError = false }
         }
     }

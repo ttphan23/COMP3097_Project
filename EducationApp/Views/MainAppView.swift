@@ -3,6 +3,7 @@ import SwiftUI
 struct MainAppView: View {
     @State private var selectedTab: Int = 0
     @Binding var isLoggedIn: Bool
+    @StateObject private var loc = LocalizationManager.shared
 
     init(isLoggedIn: Binding<Bool>) {
         self._isLoggedIn = isLoggedIn
@@ -10,21 +11,57 @@ struct MainAppView: View {
     }
 
     var body: some View {
+<<<<<<< HEAD
         TabView(selection: $selectedTab) {
             NavigationStack { HomeStudentDashboardView() }
                 .tag(0)
+=======
+        ZStack {
+            TabView(selection: $selectedTab) {
+                // Home Tab
+                NavigationStack {
+                    HomeStudentDashboardView(selectedTab: $selectedTab)
+                }
+                .tag(0)
+                .tabItem {
+                    Label(loc.localized("Home"), systemImage: "house.fill")
+                }
+>>>>>>> main
 
             NavigationStack { CourseCatalogView() }
                 .tag(1)
+<<<<<<< HEAD
+=======
+                .tabItem {
+                    Label(loc.localized("Catalog"), systemImage: "sparkles")
+                }
+>>>>>>> main
 
             NavigationStack { AssignmentsView() }
                 .tag(2)
+<<<<<<< HEAD
             
             NavigationStack { SavedCoursesView() }
                 .tag(3)
 
             NavigationStack { ProfileView(isLoggedIn: $isLoggedIn) }
                 .tag(4)
+=======
+                .tabItem {
+                    Label(loc.localized("Saved"), systemImage: "bookmark.fill")
+                }
+
+                // Profile Tab
+                NavigationStack {
+                    ProfileView(isLoggedIn: $isLoggedIn)
+                }
+                .tag(3)
+                .tabItem {
+                    Label(loc.localized("Profile"), systemImage: "person.crop.circle")
+                }
+            }
+            .tint(Color(red: 0.231, green: 0.51, blue: 0.96))
+>>>>>>> main
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             BottomPillBar(selectedTab: $selectedTab)
