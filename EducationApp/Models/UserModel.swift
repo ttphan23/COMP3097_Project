@@ -250,3 +250,74 @@ struct AppData: Codable {
         case preferences, lastSyncDate
     }
 }
+
+import Foundation
+
+struct Flashcard: Codable, Identifiable, Hashable {
+    var id: String = UUID().uuidString
+    var front: String
+    var back: String
+    var lastReviewed: Date?
+    var correctCount: Int = 0
+    var incorrectCount: Int = 0
+}
+
+struct FlashcardDeck: Codable, Identifiable, Hashable {
+    var id: String = UUID().uuidString
+    var courseId: String
+    var lessonId: String
+    var title: String
+    var createdAt: Date = Date()
+    var cards: [Flashcard] = []
+}
+
+struct StudySession: Codable, Identifiable, Hashable {
+    var id: String = UUID().uuidString
+    var courseId: String?
+    var courseTitle: String?
+    var startDate: Date
+    var endDate: Date
+    var focusMinutes: Int
+    var breakMinutes: Int
+    var completed: Bool = true
+}
+
+struct CourseTextReview: Codable, Identifiable, Hashable {
+    var id: String = UUID().uuidString
+    var courseId: String
+    var courseTitle: String
+    var authorName: String
+    var rating: Int
+    var reviewText: String
+    var createdAt: Date = Date()
+}
+
+struct CoursePrerequisiteLink: Codable, Identifiable, Hashable {
+    var id: String = UUID().uuidString
+    var courseId: String
+    var prerequisiteCourseId: String
+}
+
+struct DailyLearningActivity: Codable, Identifiable, Hashable {
+    var id: String = UUID().uuidString
+    var date: Date
+    var studyMinutes: Int = 0
+    var coursesProgressed: Int = 0
+    var quizzesPassed: Int = 0
+    var sessionsCompleted: Int = 0
+
+    var activityScore: Int {
+        studyMinutes + (coursesProgressed * 30) + (quizzesPassed * 20) + (sessionsCompleted * 15)
+    }
+}
+
+struct StudySummary: Hashable {
+    var totalStudyMinutes: Int
+    var coursesProgressed: Int
+    var quizzesPassed: Int
+    var sessionsCompleted: Int
+
+    var totalStudyHoursText: String {
+        String(format: "%.1f h", Double(totalStudyMinutes) / 60.0)
+    }
+}
