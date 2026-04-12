@@ -150,7 +150,61 @@ struct CourseCatalogView: View {
                                         imageName: course.imageName
                                     )
                                 }
+<<<<<<< HEAD
+                            )
+                        }
+
+                        NavigationLink(destination: CourseDetailsView().navigationBarHidden(true)) {
+                            CourseCard(
+                                courseId: "course_modern_art_history",
+                                title: "Modern Art History",
+                                category: "Arts",
+                                categoryColor: Color.orange,
+                                duration: "6 Weeks",
+                                difficulty: "Easy",
+                                difficultyColor: Color.green,
+                                studentCount: "5k",
+                                isEnrolled: enrolledCourses.contains("course_modern_art_history"),
+                                onEnroll: { courseId in
+                                    let progress = CourseProgress(
+                                        courseId: courseId,
+                                        courseName: "Modern Art History",
+                                        category: "Arts",
+                                        enrollmentDate: Date(),
+                                        totalLessons: 8
+                                    )
+                                    persistenceManager.saveCourseProgress(progress)
+                                    enrolledCourses.insert(courseId)
+                                }
+                            )
+                        }
+
+                        NavigationLink(destination: CourseDetailsView().navigationBarHidden(true)) {
+                            CourseCard(
+                                courseId: "course_algorithm_design",
+                                title: "Algorithm Design",
+                                category: "Engineering",
+                                categoryColor: Color(red: 0.196, green: 0.784, blue: 0.471),
+                                duration: "10 Weeks",
+                                difficulty: "Medium",
+                                difficultyColor: Color.orange,
+                                studentCount: "8k",
+                                isEnrolled: enrolledCourses.contains("course_algorithm_design"),
+                                onEnroll: { courseId in
+                                    let progress = CourseProgress(
+                                        courseId: courseId,
+                                        courseName: "Algorithm Design",
+                                        category: "Engineering",
+                                        enrollmentDate: Date(),
+                                        totalLessons: 10
+                                    )
+                                    persistenceManager.saveCourseProgress(progress)
+                                    enrolledCourses.insert(courseId)
+                                }
+                            )
+=======
                             }
+>>>>>>> main
                         }
 
                         Spacer(minLength: 60)
@@ -184,7 +238,11 @@ struct CategoryButton: View {
         case "Engineering":
             return Color(red: 0.196, green: 0.784, blue: 0.471)
         case "Business":
+<<<<<<< HEAD
+            return Color.orange
+=======
             return Color(red: 0.85, green: 0.65, blue: 0.0)
+>>>>>>> main
         default:
             return Color.blue
         }

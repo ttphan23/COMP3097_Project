@@ -48,6 +48,16 @@ struct CreateAccountView: View {
                 headerSection
                 formSection
                 Spacer()
+<<<<<<< HEAD
+
+                // Hidden navigation trigger
+                    .navigationDestination(isPresented: $goToVerify) {
+                        VerifyEmailView(isLoggedIn: $isLoggedIn, email: email)
+                            .navigationBarBackButtonHidden(true)
+                    }
+                .hidden()
+=======
+>>>>>>> main
             }
         }
         .navigationDestination(isPresented: $goToVerify) {

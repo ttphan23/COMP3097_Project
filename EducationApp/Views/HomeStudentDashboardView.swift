@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeStudentDashboardView: View {
+    @State private var showNotifications = false
     @StateObject private var persistenceManager = DataPersistenceManager.shared
     @StateObject private var loc = LocalizationManager.shared
     @State private var stats = (totalCoursesEnrolled: 0, totalCoursesCompleted: 0, totalLessonsCompleted: 0, averageProgress: 0.0)
@@ -61,8 +62,13 @@ struct HomeStudentDashboardView: View {
                     }
                     
                     Spacer()
+<<<<<<< HEAD
+
+                    Button(action: { showNotifications = true}) {
+=======
                     
                     Button(action: { showNotifications = true }) {
+>>>>>>> main
                         Image(systemName: "bell.badge.fill")
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundStyle(Color(red: 1, green: 0.49, blue: 0.37))
@@ -351,6 +357,18 @@ struct HomeStudentDashboardView: View {
                                     .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 4)
                                 }
                             }
+<<<<<<< HEAD
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color(red: 0.86, green: 0.99, blue: 0.84).opacity(0.5))
+                            .cornerRadius(12)
+                            .border(Color.green.opacity(0.2), width: 1)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 12)
+                        .padding(.bottom, 45)
+=======
                             
                             // Progress Analytics Section
                             VStack(alignment: .leading, spacing: 12) {
@@ -358,6 +376,7 @@ struct HomeStudentDashboardView: View {
                                     .font(.system(size: 22, weight: .bold, design: .rounded))
                                     .foregroundStyle(Color(.label).opacity(0.9))
                                     .padding(.horizontal, 18)
+>>>>>>> main
 
                                 // Stats Row
                                 HStack(spacing: 12) {
@@ -658,6 +677,15 @@ struct HomeStudentDashboardView: View {
                 }
             }
         }
+<<<<<<< HEAD
+        .onAppear {
+            stats = persistenceManager.getAppStatistics()
+        }
+        .sheet(isPresented: $showNotifications){
+            NotificationsView()
+        }
+=======
+>>>>>>> main
     }
     
     // MARK: - Notifications Sheet

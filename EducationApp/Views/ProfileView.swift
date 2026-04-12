@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var studyStore: StudyFeatureStore
+
     @Binding var isLoggedIn: Bool
     @StateObject private var persistenceManager = DataPersistenceManager.shared
     @StateObject private var loc = LocalizationManager.shared
@@ -11,11 +13,15 @@ struct ProfileView: View {
     @State private var notificationsEnabled: Bool = true
     @State private var darkModeEnabled: Bool = false
     @State private var language: String = "English"
-    @State private var stats = (totalCoursesEnrolled: 0, totalCoursesCompleted: 0, totalLessonsCompleted: 0, averageProgress: 0.0)
+    @State private var stats = (
+        totalCoursesEnrolled: 0,
+        totalCoursesCompleted: 0,
+        totalLessonsCompleted: 0,
+        averageProgress: 0.0
+    )
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack {
                 Text(loc.localized("Profile"))
                     .font(.system(size: 24, weight: .bold))
@@ -48,7 +54,6 @@ struct ProfileView: View {
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 20) {
-                    // Profile Header
                     VStack(spacing: 16) {
                         Image(systemName: "person.crop.circle.fill")
                             .font(.system(size: 80))
@@ -59,7 +64,10 @@ struct ProfileView: View {
                                     .fill(Color(red: 0.231, green: 0.51, blue: 0.96).opacity(0.1))
                                     .overlay(
                                         Circle()
-                                            .stroke(Color(red: 0.231, green: 0.51, blue: 0.96).opacity(0.2), lineWidth: 2)
+                                            .stroke(
+                                                Color(red: 0.231, green: 0.51, blue: 0.96).opacity(0.2),
+                                                lineWidth: 2
+                                            )
                                     )
                             )
 
@@ -96,7 +104,6 @@ struct ProfileView: View {
                     .background(Color(.secondarySystemBackground).opacity(0.5))
                     .cornerRadius(16)
 
-                    // Personal Information
                     VStack(spacing: 12) {
                         Text("Personal Information")
                             .font(.system(size: 16, weight: .bold))
@@ -116,7 +123,6 @@ struct ProfileView: View {
                             .stroke(Color.gray.opacity(0.1), lineWidth: 1)
                     )
 
-                    // Stats
                     VStack(spacing: 12) {
                         Text(loc.localized("Learning Stats"))
                             .font(.system(size: 16, weight: .bold))
@@ -154,7 +160,9 @@ struct ProfileView: View {
                             .stroke(Color.gray.opacity(0.1), lineWidth: 1)
                     )
 
-                    // Settings Section
+                    ProfileAnalyticsSection()
+                        .environmentObject(studyStore)
+
                     VStack(spacing: 0) {
                         Text(loc.localized("Settings"))
                             .font(.system(size: 16, weight: .bold))
@@ -175,8 +183,8 @@ struct ProfileView: View {
                             Spacer()
 
                             Toggle("", isOn: $notificationsEnabled)
-                                .onChange(of: notificationsEnabled) {
-                                    persistenceManager.updateNotificationPreference(notificationsEnabled)
+                                .onChange(of: notificationsEnabled) { newValue in
+                                    persistenceManager.updateNotificationPreference(newValue)
                                 }
                         }
 
@@ -196,8 +204,8 @@ struct ProfileView: View {
                             Spacer()
 
                             Toggle("", isOn: $darkModeEnabled)
-                                .onChange(of: darkModeEnabled) {
-                                    persistenceManager.updateDarkModePreference(darkModeEnabled)
+                                .onChange(of: darkModeEnabled) { newValue in
+                                    persistenceManager.updateDarkModePreference(newValue)
                                 }
                         }
 
@@ -222,9 +230,9 @@ struct ProfileView: View {
                                 Text("French").tag("French")
                                 Text("German").tag("German")
                             }
-                            .onChange(of: language) {
-                                persistenceManager.updateLanguagePreference(language)
-                                loc.currentLanguage = language
+                            .onChange(of: language) { newValue in
+                                persistenceManager.updateLanguagePreference(newValue)
+                                loc.currentLanguage = newValue
                             }
                         }
 
@@ -245,7 +253,6 @@ struct ProfileView: View {
                             .stroke(Color.gray.opacity(0.1), lineWidth: 1)
                     )
 
-                    // Logout Button
                     Button(action: { showLogoutAlert = true }) {
                         HStack {
                             Image(systemName: "arrowtriangleright.fill")
@@ -316,6 +323,131 @@ struct ProfileView: View {
                 .font(.system(size: 14))
                 .foregroundStyle(Color(.secondaryLabel))
                 .multilineTextAlignment(.trailing)
+        }
+    }
+}
+
+// MARK: - Analytics
+
+struct ProfileAnalyticsSection: View {
+    @EnvironmentObject private var studyStore: StudyFeatureStore
+
+    private var weeklySummary: StudySummary {
+        studyStore.summary(forLastDays: 7)
+    }
+
+    private var monthlySummary: StudySummary {
+        studyStore.summary(forLastDays: 30)
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Learning Analytics")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(Color(.label).opacity(0.9))
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            ProfileReportSummaryCard(title: "Weekly Report", summary: weeklySummary)
+            ProfileReportSummaryCard(title: "Monthly Report", summary: monthlySummary)
+            ProfileHeatMapSection()
+        }
+        .padding(16)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+        )
+    }
+}
+
+struct ProfileReportSummaryCard: View {
+    let title: String
+    let summary: StudySummary
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Color(.label).opacity(0.9))
+
+            HStack(spacing: 12) {
+                AnalyticsMiniCard(title: "Hours", value: summary.totalStudyHoursText, color: .blue)
+                AnalyticsMiniCard(title: "Progress", value: "\(summary.coursesProgressed)", color: .green)
+            }
+
+            HStack(spacing: 12) {
+                AnalyticsMiniCard(title: "Quizzes", value: "\(summary.quizzesPassed)", color: .purple)
+                AnalyticsMiniCard(title: "Sessions", value: "\(summary.sessionsCompleted)", color: .orange)
+            }
+        }
+        .padding(14)
+        .background(Color(.tertiarySystemBackground))
+        .cornerRadius(14)
+    }
+}
+
+struct AnalyticsMiniCard: View {
+    let title: String
+    let value: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(value)
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(color)
+
+            Text(title)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color(.secondaryLabel))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+    }
+}
+
+struct ProfileHeatMapSection: View {
+    @EnvironmentObject private var studyStore: StudyFeatureStore
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Activity Heat Map")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Color(.label).opacity(0.9))
+
+            LazyVGrid(columns: columns, spacing: 4) {
+                ForEach(studyStore.heatMapDates(), id: \.self) { date in
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(color(for: studyStore.activityLevel(for: date)))
+                        .frame(height: 18)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color.black.opacity(0.05), lineWidth: 0.5)
+                        )
+                }
+            }
+
+            Text("Shows your study activity over the last 12 weeks.")
+                .font(.system(size: 11))
+                .foregroundStyle(Color(.secondaryLabel))
+        }
+        .padding(14)
+        .background(Color(.tertiarySystemBackground))
+        .cornerRadius(14)
+    }
+
+    private func color(for level: Int) -> Color {
+        switch level {
+        case 1: return .green.opacity(0.25)
+        case 2: return .green.opacity(0.45)
+        case 3: return .green.opacity(0.70)
+        case 4: return .green
+        default: return Color(.systemGray5)
         }
     }
 }
@@ -446,4 +578,5 @@ struct SettingItem: View {
 
 #Preview {
     ProfileView(isLoggedIn: .constant(true))
+        .environmentObject(StudyFeatureStore.shared)
 }
